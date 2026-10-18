@@ -1,16 +1,10 @@
 {
-  "version_code": 109,
-  "version_name": "1.0.9",
+  "version_code": 110,
+  "version_name": "1.0.10",
   "min_supported_version_code": 1,
   "changelog": [
-    "Added google flow video generation mcp",
-    "Added claude animation on chat(can be disabled in settings)",
-    "Add claude integration(beta)",
-    "Few bug fixes and performance improvements",
-    "UI improvements",
-    "Fix little bugs in browser",
-    "Added support for ubunutu proot in standard build(apk not provided though)",
-    "Added curly divider for date in chat"
+    "Improve google flow mcp faster so that adding references wont need reload",
+    "Seperated the mcp into terminal,browser and google_flow instead of single mcp"
     
   ],
   "is_critical": false

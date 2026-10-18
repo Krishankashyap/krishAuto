@@ -1961,6 +1961,12 @@ fun BrowserDiagnosticOverlay(
  */
 @Composable
 private fun FlowAiLockOverlay(busy: Boolean, onUnlock: () -> Unit) {
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        keyboardController?.hide()
+        focusManager.clearFocus(force = true)
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -1975,24 +1981,22 @@ private fun FlowAiLockOverlay(busy: Boolean, onUnlock: () -> Unit) {
     ) {
         Surface(
             shape = RoundedCornerShape(50),
-            color = Color.Black.copy(alpha = 0.55f),
+            color = Color.Black.copy(alpha = 0.40f),
             modifier = Modifier.padding(top = 10.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = 12.dp, end = if (busy) 14.dp else 4.dp, top = 6.dp, bottom = 6.dp)
             ) {
-                if (busy) {
-                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = Color.White)
-                } else {
+                if (!busy) {
                     Icon(
                         imageVector = Icons.Outlined.Lock,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(15.dp)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (busy) "AI is working in Flow…" else "Controlled by AI",
                     fontSize = 12.sp,

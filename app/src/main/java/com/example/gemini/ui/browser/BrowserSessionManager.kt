@@ -1,7 +1,9 @@
 package com.example.gemini.ui.browser
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -18,6 +20,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
@@ -291,6 +294,10 @@ class BrowserSessionManager private constructor() {
                     // 4. Force 1280px desktop viewport width with pinch zoom-in and zoom-out fully enabled
                     function applyDesktopViewport() {
                         try {
+                            if (window.__agFlowInputLock && window.__agFlow) {
+                                window.__agFlow.freezeZoom(true);
+                                return;
+                            }
                             var meta = document.querySelector('meta[name="viewport"]');
                             if (!meta) {
                                 meta = document.createElement('meta');
@@ -491,6 +498,18 @@ class BrowserSessionManager private constructor() {
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    private data class FlowInputState(
+        val view: WebView,
+        val focusable: Boolean,
+        val focusableInTouchMode: Boolean,
+        val supportZoom: Boolean,
+        val builtInZoomControls: Boolean,
+        val softInputMode: Int?,
+        val altFocusableIm: Boolean?
+    )
+
+    private val flowInputStates = mutableMapOf<String, FlowInputState>()
+
     val tabs = mutableStateListOf<BrowserTabSession>().apply {
         add(BrowserTabSession(initialUrl = "", initialTitle = "New Tab"))
     }
@@ -585,6 +604,7 @@ class BrowserSessionManager private constructor() {
         val index = tabs.indexOfFirst { it.id == tabId }
         if (index == -1) return false
         val tabToRemove = tabs[index]
+        setFlowAutomationInput(tabToRemove, false)
         mainHandler.post {
             try {
                 tabToRemove.webView?.onPause()
@@ -804,16 +824,24 @@ class BrowserSessionManager private constructor() {
         tab.webView = null
 
         val wv = object : WebView(context) {
+            private fun blocksFlowInput() = FlowAutomationManager.isFlowUrl(tab.url) && tab.blocksUserInput
+
             // While AI automation drives this tab, page input focus must never bring up the soft keyboard
-            // (text is entered through the page itself) ...
-            override fun onCheckIsTextEditor(): Boolean = if (tab.blocksUserInput) false else super.onCheckIsTextEditor()
+            override fun onCheckIsTextEditor(): Boolean = if (blocksFlowInput()) false else super.onCheckIsTextEditor()
 
             override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? =
-                if (tab.blocksUserInput) null else super.onCreateInputConnection(outAttrs)
+                if (blocksFlowInput()) null else super.onCreateInputConnection(outAttrs)
 
-            // ... and an off-screen tab must not steal focus (and the keyboard) from what the user is typing in
+            // Never take focus or show keyboard while AI is busy
             override fun requestFocus(direction: Int, previouslyFocusedRect: Rect?): Boolean =
-                if (tab.aiBusy && !tab.isOnScreen) false else super.requestFocus(direction, previouslyFocusedRect)
+                if (blocksFlowInput()) false else super.requestFocus(direction, previouslyFocusedRect)
+
+            override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
+                super.onWindowFocusChanged(hasWindowFocus)
+                if (hasWindowFocus && tab.aiBusy && FlowAutomationManager.isFlowUrl(tab.url)) {
+                    setFlowAutomationInput(tab, true)
+                }
+            }
         }.apply {
             setBackgroundColor(Color.WHITE)
             layoutParams = ViewGroup.LayoutParams(1080, 1920)
@@ -865,6 +893,7 @@ class BrowserSessionManager private constructor() {
                     if (tab.isDesktopMode) {
                         injectDesktopSpoofing(view)
                     }
+                    setFlowAutomationInput(tab, tab.aiBusy && FlowAutomationManager.isFlowUrl(url))
                 }
 
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -892,6 +921,7 @@ class BrowserSessionManager private constructor() {
                     if (tab.isDesktopMode && FlowAutomationManager.isFlowUrl(url)) {
                         view?.postDelayed({ zoomOutFully(tab) }, 800)
                     }
+                    setFlowAutomationInput(tab, tab.aiBusy && FlowAutomationManager.isFlowUrl(url))
                     view?.postDelayed({
                         tab.capturePreview()
                     }, 400)
@@ -902,6 +932,7 @@ class BrowserSessionManager private constructor() {
                     if (tab.isDesktopMode) {
                         injectDesktopSpoofing(view)
                     }
+                    setFlowAutomationInput(tab, tab.aiBusy && FlowAutomationManager.isFlowUrl(url))
                 }
 
                 override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -1542,14 +1573,90 @@ class BrowserSessionManager private constructor() {
         }
     }
 
+    private fun activityOf(view: WebView): Activity? {
+        var context = view.context
+        while (context is ContextWrapper && context !is Activity) context = context.baseContext
+        return context as? Activity
+    }
+
+    /** Native input/gesture lock for Flow automation; JavaScript focus and trusted touch still work. */
+    fun setFlowAutomationInput(tab: BrowserTabSession, enabled: Boolean) {
+        mainHandler.post {
+            if (!enabled || !tab.aiBusy || !FlowAutomationManager.isFlowUrl(tab.url)) {
+                restoreFlowAutomationInput(tab.id)
+                return@post
+            }
+            val view = tab.webView ?: return@post
+            val previous = flowInputStates[tab.id]
+            val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            if (previous?.view !== view) {
+                flowInputStates[tab.id] = FlowInputState(
+                    view, view.isFocusable, view.isFocusableInTouchMode,
+                    view.settings.supportZoom(), view.settings.builtInZoomControls,
+                    previous?.softInputMode ?: activityOf(view)?.window?.attributes?.softInputMode,
+                    previous?.altFocusableIm ?: activityOf(view)?.window?.attributes?.flags?.let {
+                        it and WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM != 0
+                    }
+                )
+                imm?.hideSoftInputFromWindow(view.windowToken, 0)
+                view.clearFocus()
+                view.isFocusableInTouchMode = false
+                view.isFocusable = false
+                // Discard a connection opened before aiBusy changed; returning null only affects new ones.
+                imm?.restartInput(view)
+            }
+            view.settings.setSupportZoom(false)
+            view.settings.builtInZoomControls = false
+            // Block IME interaction at the window too: newly mounted picker inputs can focus
+            // before the page's inputmode observer runs.
+            activityOf(view)?.window?.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            activityOf(view)?.window?.setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+            )
+            view.evaluateJavascript(FlowPageScripts.call("s.freezeZoom(true)"), null)
+        }
+    }
+
+    private fun restoreFlowAutomationInput(tabId: String): Boolean {
+        val state = flowInputStates.remove(tabId) ?: return false
+        val view = state.view
+        view.clearFocus()
+        view.settings.setSupportZoom(state.supportZoom)
+        view.settings.builtInZoomControls = state.builtInZoomControls
+        view.isFocusableInTouchMode = state.focusableInTouchMode
+        view.isFocusable = state.focusable
+        state.softInputMode?.let { activityOf(view)?.window?.setSoftInputMode(it) }
+        state.altFocusableIm?.let { enabled ->
+            val flag = WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+            activityOf(view)?.window?.setFlags(if (enabled) flag else 0, flag)
+        }
+        val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.hideSoftInputFromWindow(view.windowToken, 0)
+        imm?.restartInput(view)
+        return true
+    }
+
     /**
-     * Hides the soft keyboard if it is showing for this tab's WebView.
+     * Hides the soft keyboard if it is showing for this tab's WebView and locks the window against resizing/zooming.
      */
     fun hideKeyboard(tab: BrowserTabSession) {
+        fun doHide(wv: android.webkit.WebView) {
+            val imm = wv.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.hideSoftInputFromWindow(wv.windowToken, 0)
+            wv.clearFocus()
+            var ctx = wv.context
+            while (ctx is ContextWrapper && ctx !is Activity) {
+                ctx = ctx.baseContext
+            }
+            (ctx as? Activity)?.window?.setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+            )
+        }
         mainHandler.post {
             val wv = tab.webView ?: return@post
-            val imm = wv.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager ?: return@post
-            imm.hideSoftInputFromWindow(wv.windowToken, 0)
+            doHide(wv)
+            mainHandler.postDelayed({ if (tab.aiBusy) tab.webView?.let { doHide(it) } }, 50)
+            mainHandler.postDelayed({ if (tab.aiBusy) tab.webView?.let { doHide(it) } }, 200)
         }
     }
 
@@ -1559,10 +1666,18 @@ class BrowserSessionManager private constructor() {
      */
     fun releaseFocus(tab: BrowserTabSession) {
         mainHandler.post {
+            if (restoreFlowAutomationInput(tab.id)) return@post
             val wv = tab.webView ?: return@post
             val imm = wv.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
             imm?.hideSoftInputFromWindow(wv.windowToken, 0)
             if (wv.hasFocus()) wv.clearFocus()
+            var ctx = wv.context
+            while (ctx is ContextWrapper && ctx !is Activity) {
+                ctx = ctx.baseContext
+            }
+            (ctx as? Activity)?.window?.setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED or WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            )
         }
     }
 

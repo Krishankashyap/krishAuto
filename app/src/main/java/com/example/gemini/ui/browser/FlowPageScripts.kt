@@ -15,7 +15,7 @@ package com.example.gemini.ui.browser
  */
 object FlowPageScripts {
 
-    const val VERSION = 9
+    const val VERSION = 20
 
     // RPC ids from the spec's verified catalog
     const val RPC_CREDITS = "nzlxg"
@@ -127,7 +127,7 @@ object FlowPageScripts {
               var panes = document.querySelectorAll('.cdk-overlay-pane');
               for (var i = 0; i < panes.length; i++) {
                 var p = panes[i];
-                if (shown(p) && (p.querySelector('[role="listbox"][aria-label="Asset list"]') || byText('upload\\s*media', 'button', p))) return p;
+                if (shown(p) && (p.querySelector('[role="listbox"][aria-label="Asset list"], flow-add-menu-side-nav, button.asset-item, button.detail-add-to-prompt-btn') || byText('upload\\s*media|add\\s*to\\s*prompt', 'button', p))) return p;
               }
               return null;
             }
@@ -137,6 +137,8 @@ object FlowPageScripts {
             function promptRoot() {
               var pm = promptEl();
               if (!pm) return null;
+              var box = pm.closest('flow-prompt-box') || pm.closest('flow-base-prompt-box');
+              if (box) return box;
               var el = pm;
               for (var i = 0; el && i < 12; i++) {
                 if (el.querySelector && el.querySelector('[aria-label="Start generation"]')) return el;
@@ -147,17 +149,32 @@ object FlowPageScripts {
               return el;
             }
             function chips() {
-              var root = promptRoot();
-              if (!root) return [];
-              return Array.prototype.filter.call(root.querySelectorAll('[aria-label="Ingredient"], [aria-label="Image ingredient"]'), shown);
+              // Same custom-element query as flow_mcp: hosts may use display: contents and have no rect.
+              var pBox = document.querySelector('flow-prompt-box, flow-base-prompt-box');
+              if (!pBox) return [];
+              var custom = Array.from(pBox.querySelectorAll('flow-ingredient-chip'));
+              return custom.length ? custom : Array.from(pBox.querySelectorAll('[aria-label="Ingredient"], [aria-label="Image ingredient"]'));
             }
             function refCount() { return chips().length; }
-            // The media id each attached chip really carries (its thumbnail is flow-content.google/image/<mediaId>)
+            function mediaIdOf(el) {
+              var nodes = [el].concat(Array.prototype.slice.call(el.querySelectorAll('[data-media-id], [media-id], img, video, source, a[href]')));
+              for (var i = 0; i < nodes.length; i++) {
+                var n = nodes[i];
+                var id = n.getAttribute('data-media-id') || n.getAttribute('media-id');
+                if (id) return id;
+                var src = n.currentSrc || n.getAttribute('src') || n.getAttribute('poster') || n.getAttribute('href') || '';
+                var m = /\/(?:image|video)\/([^?\/#]+)/.exec(src);
+                if (m) return m[1];
+              }
+              return null;
+            }
+            function cleanAssetTitle(value) {
+              return norm(value).replace(/^[@#]/, '').replace(/\.(png|jpe?g|webp|gif|mp4|webm|mov)$/i, '').toLowerCase();
+            }
+            // The media id or title each attached chip really carries
             function chipIds() {
               return chips().map(function (el) {
-                var img = el.querySelector('img');
-                var m = /\/image\/([^?\/#]+)/.exec(img ? (img.currentSrc || img.src || '') : '');
-                return m ? m[1] : '';
+                return mediaIdOf(el) || norm((el.innerText || el.textContent || '').split('\n')[0]);
               });
             }
             function chipPoint(index) { var c = chips()[index]; return c ? point(c) : { found: false }; }
@@ -176,25 +193,63 @@ object FlowPageScripts {
               var list = lb ? Array.prototype.filter.call(lb.querySelectorAll('[role="option"]'), shown) : [];
               return { count: list.length, first: list.length ? point(list[0]) : null, labels: list.slice(0, 10).map(label) };
             }
-            // Keep the page at its zoomed-out width while AI drives it: no auto-zoom into focused fields
+            // Lock the fitted Flow viewport and suppress IME requests without blocking DOM text editing.
             function freezeZoom(on) {
+              var state = window.__agFlowInputLock;
+              if (!on) {
+                if (!state) return { ok: true };
+                state.observer.disconnect();
+                document.removeEventListener('focusin', state.onFocus, true);
+                if (window.visualViewport) window.visualViewport.removeEventListener('resize', state.applyViewport);
+                state.fields.forEach(function (original, el) {
+                  if (original == null) el.removeAttribute('inputmode');
+                  else el.setAttribute('inputmode', original);
+                });
+                var meta = document.querySelector('meta[name="viewport"]');
+                if (meta) {
+                  if (state.createdViewport) meta.remove();
+                  else if (state.originalViewport == null) meta.removeAttribute('content');
+                  else meta.setAttribute('content', state.originalViewport);
+                }
+                window.__agFlowInputLock = null;
+                return { ok: true };
+              }
+              if (state) {
+                state.applyViewport();
+                return { ok: true, scale: state.scale };
+              }
               var meta = document.querySelector('meta[name="viewport"]');
-              if (!meta) {
-                meta = document.createElement('meta');
-                meta.name = 'viewport';
-                (document.head || document.documentElement).appendChild(meta);
+              state = { originalViewport: meta && meta.getAttribute('content'), createdViewport: !meta, fields: new Map() };
+              window.__agFlowInputLock = state;
+              function protect(el) {
+                if (!el || !el.matches || !el.matches('input, textarea, [contenteditable="true"], [contenteditable="plaintext-only"]')) return;
+                if (!state.fields.has(el)) state.fields.set(el, el.getAttribute('inputmode'));
+                if (el.getAttribute('inputmode') !== 'none') el.setAttribute('inputmode', 'none');
               }
-              var current = meta.getAttribute('content') || '';
-              if (on) {
-                if (current.indexOf('user-scalable=no') >= 0 && window.__agFlowVp != null) return { ok: true };
-                window.__agFlowVp = current;
-                var width = (/width=(\d+)/.exec(current) || [])[1] || '1280';
-                meta.setAttribute('content', 'width=' + width + ', user-scalable=no');
-              } else if (window.__agFlowVp != null) {
-                meta.setAttribute('content', window.__agFlowVp);
-                window.__agFlowVp = null;
+              function protectFields() {
+                document.querySelectorAll('input, textarea, [contenteditable="true"], [contenteditable="plaintext-only"]').forEach(protect);
               }
-              return { ok: true };
+              state.applyViewport = function () {
+                var current = document.querySelector('meta[name="viewport"]');
+                if (!current) {
+                  current = document.createElement('meta');
+                  current.name = 'viewport';
+                  (document.head || document.documentElement).appendChild(current);
+                }
+                var width = 1280, vv = window.visualViewport;
+                var physicalWidth = vv ? vv.width * vv.scale : window.innerWidth;
+                state.scale = Math.max(0.01, physicalWidth / width).toFixed(6);
+                var locked = 'width=' + width + ', initial-scale=' + state.scale + ', minimum-scale=' + state.scale + ', maximum-scale=' + state.scale + ', user-scalable=no';
+                if (current.getAttribute('content') !== locked) current.setAttribute('content', locked);
+              };
+              state.onFocus = function (event) { protect(event.target); };
+              state.observer = new MutationObserver(function () { state.applyViewport(); protectFields(); });
+              state.observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['content', 'inputmode'] });
+              document.addEventListener('focusin', state.onFocus, true);
+              if (window.visualViewport) window.visualViewport.addEventListener('resize', state.applyViewport);
+              protectFields();
+              state.applyViewport();
+              return { ok: true, scale: state.scale };
             }
             // Grid tiles: hover a tile (by its unique title) so its "More options" button appears
             function tileHover(title) {
@@ -299,7 +354,98 @@ object FlowPageScripts {
               best.click();
               return { ok: true, label: label(best) };
             }
-            function clickAria(name) { var el = byAria(name); if (!el) return { ok: false }; el.click(); return { ok: true }; }
+            function clickEl(selOrEl) {
+              var el = (typeof selOrEl === 'string') ? document.querySelector(selOrEl) : selOrEl;
+              if (!el) return { ok: false, error: 'element_not_found' };
+              if (disabled(el)) return { ok: false, error: 'element_disabled' };
+              try { el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' }); } catch (e) {}
+              var opts = { bubbles: true, cancelable: true, composed: true, view: window };
+              try { el.dispatchEvent(new PointerEvent('pointerdown', opts)); } catch (e) {}
+              try { el.dispatchEvent(new MouseEvent('mousedown', opts)); } catch (e) {}
+              try { el.dispatchEvent(new PointerEvent('pointerup', opts)); } catch (e) {}
+              try { el.dispatchEvent(new MouseEvent('mouseup', opts)); } catch (e) {}
+              if (typeof el.click === 'function') {
+                el.click();
+              }
+              return { ok: true, label: label(el) };
+            }
+            function clickAria(name) { var el = byAria(name); if (!el) return { ok: false }; return clickEl(el); }
+            function clickRadio(pattern) {
+              var root = pane();
+              if (!root) return { ok: false, error: 'pane_not_found' };
+              var el = byText(pattern, '[role="radio"]', root);
+              if (!el) return { ok: false, error: 'radio_not_found' };
+              if (el.getAttribute('aria-checked') === 'true') return { ok: true, alreadyChecked: true };
+              return clickEl(el);
+            }
+            function clickModelButton() {
+              var root = pane();
+              var el = root && root.querySelector('button[aria-label="Select model family"]');
+              if (!el) return { ok: false, error: 'model_button_not_found' };
+              return clickEl(el);
+            }
+            function clickPickerTab(name) {
+              var p = picker();
+              var el = p && byText('(^|\\s)' + name + '\\s*$', '[role="tab"]', p);
+              if (!el) return { ok: false, error: 'picker_tab_not_found' };
+              return clickEl(el);
+            }
+            function clickChip(index) {
+              var c = chips()[index];
+              if (!c) return { ok: false, error: 'chip_not_found' };
+              var removeBtn = c.querySelector('.hover-icon-overlay, mat-icon.hover-icon, button') || c;
+              return clickEl(removeBtn);
+            }
+            function submitButton() {
+              var root = promptRoot();
+              if (!root) return null;
+              var buttons = Array.prototype.filter.call(root.querySelectorAll('button'), shown);
+              return buttons.find(function (b) {
+                return b.matches("button.generate-icon-button, button[aria-label='Start generation'], div.submit-controls button[type='submit']");
+              }) || buttons.find(function (b) {
+                var icon = b.querySelector('mat-icon');
+                return icon && norm(icon.textContent) === 'arrow_forward';
+              }) || null;
+            }
+            function clickPickerOption(i) {
+              var lb = listbox();
+              var list = lb ? Array.prototype.filter.call(lb.querySelectorAll('[role="option"]'), shown) : [];
+              if (!list[i]) return { ok: false, error: 'option_not_found' };
+              return clickEl(list[i]);
+            }
+            function clickPickerButton(pattern) {
+              var p = picker();
+              var el = p && byText(pattern, 'button, [role="button"]', p);
+              if (!el) return { ok: false, error: 'button_not_found' };
+              return clickEl(el);
+            }
+            function submitInfo() {
+              var btn = submitButton();
+              if (!btn) return { found: false, error: 'submit_button_not_found' };
+              if (disabled(btn)) return { found: true, disabled: true, error: 'submit_button_disabled' };
+
+              try { btn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' }); } catch (e) {}
+              var r = btn.getBoundingClientRect();
+              var vv = window.visualViewport;
+              var vw = vv ? vv.width : window.innerWidth;
+              var vh = vv ? vv.height : window.innerHeight;
+              var ox = vv ? vv.offsetLeft : 0;
+              var oy = vv ? vv.offsetTop : 0;
+              var cx = r.left + r.width / 2 - ox;
+              var cy = r.top + r.height / 2 - oy;
+              var inViewport = vw > 0 && vh > 0 && cx > 0 && cy > 0 && cx < vw && cy < vh;
+              var hit = inViewport ? document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) : null;
+              var canTap = !!hit && (hit === btn || btn.contains(hit));
+
+              return {
+                found: true,
+                disabled: false,
+                canTap: canTap,
+                error: canTap ? null : (inViewport ? 'submit_button_covered' : 'submit_button_outside_viewport'),
+                fx: cx / vw,
+                fy: cy / vh
+              };
+            }
 
             // ---------- Editor: version history ----------
             function mainImageId() {
@@ -432,12 +578,16 @@ object FlowPageScripts {
               }
               return { found: false };
             }
-            function pickerScroll() {
-              var lb = listbox();
-              if (!lb) return { ok: false };
-              var before = lb.scrollTop;
-              lb.scrollTop = before + Math.max(200, lb.clientHeight * 0.8);
-              return { ok: true, moved: lb.scrollTop !== before };
+            function pickerScroll(reset) {
+              var root = picker();
+              if (!root) return { ok: false };
+              var scroller = Array.prototype.find.call(root.querySelectorAll('[role="listbox"], cdk-virtual-scroll-viewport, div'), function (el) {
+                return shown(el) && el.scrollHeight > el.clientHeight && /auto|scroll/.test(getComputedStyle(el).overflowY);
+              });
+              if (!scroller) return { ok: false };
+              var before = scroller.scrollTop;
+              scroller.scrollTop = reset ? 0 : before + Math.max(200, scroller.clientHeight * 0.8);
+              return { ok: true, moved: scroller.scrollTop !== before };
             }
             function findPrompt() { var el = promptEl(); return el ? point(el) : { found: false }; }
             function promptValue() { var el = promptEl(); return { value: el ? norm(el.tagName === 'TEXTAREA' ? el.value : el.innerText) : '' }; }
@@ -458,7 +608,7 @@ object FlowPageScripts {
                 document.execCommand('insertText', false, value);
               }
               var v = norm(el.tagName === 'TEXTAREA' ? el.value : el.innerText);
-              return { ok: v.indexOf(norm(value).slice(0, 40)) >= 0, value: v.slice(0, 200) };
+              return { ok: v === norm(value), value: v.slice(0, 200) };
             }
             function blurAll() {
               try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) {}
@@ -479,6 +629,331 @@ object FlowPageScripts {
                 if (l && l.length <= 80 && out.indexOf(l) < 0) out.push(l);
               });
               return out.slice(0, 60);
+            }
+
+            function configureSettingsFast(isVideo, targetRatio, targetDuration, targetCount, targetModel) {
+              var trigger = document.querySelector("button[aria-label='Settings trigger'], button.settings-trigger-button");
+              var trigText = (trigger ? (trigger.innerText || '') : '').toLowerCase();
+              var cleanRatio = (targetRatio || '').replace(':', '_').replace('/', '_');
+              var isAlreadyImage = !isVideo && (trigText.indexOf('banana') >= 0 || trigText.indexOf('imagen') >= 0 || trigText.indexOf('image') >= 0);
+              var isAlreadyVideo = isVideo && trigText.indexOf('video') >= 0 && (!targetDuration || trigText.indexOf(targetDuration + 's') >= 0);
+              var ratioMatches = !targetRatio || trigText.indexOf(cleanRatio) >= 0 || trigText.indexOf(targetRatio) >= 0;
+              var countMatches = !targetCount || trigText.indexOf('x' + targetCount) >= 0;
+
+              if (trigger && ((isAlreadyImage && ratioMatches && countMatches) || (isAlreadyVideo && ratioMatches && countMatches))) {
+                return { success: true, skipped: true, cost: (cost() || {}).cost };
+              }
+
+              var settings = pane() || document.querySelector('flow-prompt-box-settings');
+              if (!settings && trigger) {
+                trigger.click();
+                settings = pane() || document.querySelector('flow-prompt-box-settings');
+              }
+              if (!settings) return { success: false, reason: 'Settings popover not found' };
+
+              var modeRadios = Array.prototype.slice.call(settings.querySelectorAll("button[role='radio'], mat-button-toggle button"));
+              if (isVideo) {
+                var vBtn = modeRadios.find(function(b) { return (b.innerText || '').indexOf('Video') >= 0 || (b.innerHTML || '').indexOf('videocam') >= 0; });
+                if (vBtn && vBtn.getAttribute('aria-checked') !== 'true') vBtn.click();
+              } else {
+                var iBtn = modeRadios.find(function(b) { return (b.innerText || '').indexOf('Image') >= 0 || (b.innerHTML || '').indexOf('image') >= 0; });
+                if (iBtn && iBtn.getAttribute('aria-checked') !== 'true') iBtn.click();
+              }
+
+              if (targetRatio) {
+                var ratioBtn = modeRadios.find(function(b) {
+                  var t = (b.innerText || '') + ' ' + (b.getAttribute('aria-label') || '');
+                  return t.indexOf(targetRatio) >= 0 || t.indexOf(cleanRatio) >= 0;
+                });
+                if (ratioBtn && ratioBtn.getAttribute('aria-checked') !== 'true') ratioBtn.click();
+              }
+
+              if (isVideo && targetDuration) {
+                var durBtn = modeRadios.find(function(b) {
+                  var t = (b.innerText || '') + ' ' + (b.getAttribute('aria-label') || '');
+                  return t.indexOf(targetDuration + 's') >= 0;
+                });
+                if (durBtn && durBtn.getAttribute('aria-checked') !== 'true') durBtn.click();
+              }
+
+              var c = (cost() || {}).cost;
+              escape();
+              return { success: true, skipped: false, cost: c };
+            }
+
+            function openAddMenu() {
+              if (picker()) return { ok: true, open: true };
+              var root = promptRoot();
+              var addBtn = root && Array.prototype.find.call(root.querySelectorAll("button[aria-label*='Add ingredients' i], button.add-menu-trigger, flow-add-menu button"), shown);
+              return addBtn ? clickEl(addBtn) : { ok: false, error: 'add_menu_button_not_found' };
+            }
+            function isAddMenuOpen() {
+              return { open: !!picker() };
+            }
+            function switchAddMenuTab(tabName) {
+              var root = picker();
+              if (!root) return { ok: false, error: 'picker_not_open' };
+              var allTabs = Array.prototype.filter.call(root.querySelectorAll('[role="tab"]'), shown);
+              var tabEl = allTabs.find(function(t) {
+                var text = norm(t.innerText || t.textContent).toLowerCase(), name = tabName.toLowerCase();
+                return text === name || text.endsWith(' ' + name);
+              });
+              if (tabEl && tabEl.getAttribute('aria-selected') === 'true') return { ok: true, alreadySelected: true };
+              if (tabEl) return clickEl(tabEl);
+              return { ok: false, error: 'tab_not_found' };
+            }
+            // Port of flow_mcp/service-worker.js: attachLibraryAssetsBatch (generation path).
+            async function attachLibraryAssetBatch(targets, doClear, promptText) {
+              const poll = (fn, timeout = 600, interval = 12) => new Promise(resolve => {
+                const res = fn();
+                if (res) return resolve(res);
+                const start = performance.now();
+                const id = setInterval(() => {
+                  const res2 = fn();
+                  if (res2 || performance.now() - start > timeout) {
+                    clearInterval(id);
+                    resolve(res2 || null);
+                  }
+                }, interval);
+              });
+
+              const getPromptChips = () => {
+                const pBox = document.querySelector("flow-prompt-box, flow-base-prompt-box");
+                return pBox ? Array.from(pBox.querySelectorAll("flow-ingredient-chip")) : [];
+              };
+
+              // Clear stale/excess chips in prompt box if explicitly requested
+              if (doClear || targets.includes(":clear_stale")) {
+                const pBox = document.querySelector("flow-prompt-box, flow-base-prompt-box");
+                if (pBox) {
+                  pBox.querySelectorAll("flow-ingredient-chip").forEach(chip => {
+                    const overlay = chip.querySelector(".hover-icon-overlay, mat-icon.hover-icon") || chip.querySelector("button");
+                    if (overlay) {
+                      ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+                        overlay.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window }));
+                      });
+                    }
+                  });
+                }
+                await new Promise(r => setTimeout(r, 100));
+              }
+
+              const attached = [];
+              const cleanTargets = targets
+                .filter(t => t && t !== ":clear_stale" && t !== ":recent_images" && t !== ":latest_images")
+                .map(t => String(t || "").replace(/^@/, "").trim().toLowerCase());
+
+              // Helper to open Add ingredients menu
+              const ensureMenuOpen = async () => {
+                let sideNav = document.querySelector("flow-add-menu-side-nav");
+                if (sideNav && sideNav.offsetHeight > 0) return true;
+
+                const backdrop = document.querySelector(".cdk-overlay-backdrop");
+                if (backdrop) {
+                  backdrop.click();
+                  await new Promise(r => setTimeout(r, 150));
+                }
+
+                const addBtn = document.querySelector("button[aria-label*='Add ingredients' i], button.add-menu-trigger, flow-add-menu button");
+                if (addBtn) {
+                  addBtn.click();
+                  await poll(() => {
+                    const nav = document.querySelector("flow-add-menu-side-nav");
+                    return nav && nav.offsetHeight > 0 ? nav : null;
+                  }, 1000, 15);
+                }
+                return !!(document.querySelector("flow-add-menu-side-nav")?.offsetHeight > 0);
+              };
+
+              if (!(await ensureMenuOpen())) {
+                return { success: false, reason: "Could not open Add ingredients menu" };
+              }
+
+              // Helper to switch tabs
+              const switchTab = async (tabName) => {
+                const allTabs = Array.from(document.querySelectorAll("flow-add-menu-side-nav mat-list-item[role='tab'], .cdk-overlay-pane mat-list-item[role='tab']"));
+                const tabEl = allTabs.find(t => (t.innerText || "").toLowerCase().includes(tabName.toLowerCase()));
+                if (tabEl) {
+                  tabEl.click();
+                  await new Promise(r => setTimeout(r, 80));
+                  return true;
+                }
+                return false;
+              };
+
+              // Helper to find match across name, aria-label, alt, title with priority to exact match
+              const findMatch = (targetName) => {
+                const btns = Array.from(document.querySelectorAll("button.asset-item, flow-menu-item, [role='option'], [role='menuitem'], .cdk-overlay-pane button"));
+                const clean = targetName.replace(/^[:#@]/, "").toLowerCase().trim();
+                const cleanSpaced = clean.replace(/_/g, " ");
+
+                // Priority 1: Exact first-line match (title)
+                let match = btns.find(b => {
+                  const lines = (b.innerText || "").toLowerCase().split("\n").map(l => l.trim()).filter(Boolean);
+                  const title = (lines[0] || "").replace(/\.(png|jpg|jpeg|webp)$/i, "");
+                  return title === clean || title === cleanSpaced;
+                });
+                if (match) return match;
+
+                // Priority 2: Word boundary or exact inclusion
+                return btns.find(b => {
+                  const txt = (b.innerText || "").toLowerCase();
+                  const aria = (b.getAttribute("aria-label") || "").toLowerCase();
+                  const alt = (b.querySelector("img")?.getAttribute("alt") || "").toLowerCase();
+                  const title = (b.getAttribute("title") || "").toLowerCase();
+                  const all = `${'$'}{txt} ${'$'}{aria} ${'$'}{alt} ${'$'}{title}`;
+                  return all.includes(clean) || all.includes(cleanSpaced);
+                });
+              };
+
+              // Pass 1: Attach all specific character / vehicle / prop handles first
+              for (const targetName of cleanTargets) {
+                if (!targetName) continue;
+                if (getPromptChips().length >= 5) break;
+
+                const tabNames = ["Characters", "Images", "All", "Uploads", "Videos"];
+                for (const tabName of tabNames) {
+                  if (getPromptChips().length >= 5) break;
+                  if (!(await ensureMenuOpen())) break;
+                  await switchTab(tabName);
+                  await new Promise(r => setTimeout(r, 80));
+
+                  const match = findMatch(targetName);
+                  if (match) {
+                    const prevLen = getPromptChips().length;
+                    match.click();
+                    await new Promise(r => setTimeout(r, 100));
+                    const addPromptBtn = Array.from(document.querySelectorAll("button")).find(b => (b.innerText || "").includes("Add to prompt") && !b.disabled);
+                    if (addPromptBtn) addPromptBtn.click();
+
+                    await poll(() => getPromptChips().length > prevLen, 400, 15);
+                    attached.push(targetName);
+                    break;
+                  }
+                }
+              }
+
+              // Pass 2: Targeted Scene-Specific Image Matching (Zero Dummy Padding)
+              // Only attach images that genuinely match the prompt's scene tags or key nouns
+              if (promptText && getPromptChips().length < 5) {
+                const stopwords = new Set([
+                  "with", "from", "that", "this", "they", "into", "their", "have", "been",
+                  "paper", "cutout", "halftone", "cinematic", "lighting", "style", "animation",
+                  "stop-motion", "documentary", "tactile", "textures", "jitter", "volumetric",
+                  "wide", "shot", "camera", "dolly", "zoom", "angle", "tracking"
+                ]);
+                const promptWords = String(promptText).toLowerCase()
+                  .replace(/[^a-z0-9_\-#]/g, " ")
+                  .split(/\s+/)
+                  .filter(w => w.length >= 4 && !stopwords.has(w));
+
+                const sceneTags = (String(promptText).match(/(#[a-zA-Z0-9_\-]+)/g) || [])
+                  .map(t => t.replace(/^#/, "").toLowerCase());
+
+                if (await ensureMenuOpen()) {
+                  await switchTab("Images");
+                  await new Promise(r => setTimeout(r, 80));
+
+                  const imgBtns = Array.from(document.querySelectorAll("button.asset-item, .cdk-overlay-pane button"))
+                    .filter(b => b.querySelector("img") && !b.disabled);
+
+                  for (const imgBtn of imgBtns) {
+                    if (getPromptChips().length >= 5) break;
+                    const txt = (imgBtn.innerText || "").toLowerCase();
+                    const aria = (imgBtn.getAttribute("aria-label") || "").toLowerCase();
+                    const alt = (imgBtn.querySelector("img")?.getAttribute("alt") || "").toLowerCase();
+                    const fullInfo = `${'$'}{txt} ${'$'}{aria} ${'$'}{alt}`;
+
+                    // Check if this image matches any scene tag or key prompt terms
+                    const matchesTag = sceneTags.some(tag => tag.length >= 3 && fullInfo.includes(tag));
+                    const matchesWord = promptWords.filter(word => fullInfo.includes(word)).length >= 2;
+
+                    // Strict Filter: Never attach unrelated / dummy images!
+                    if (!matchesTag && !matchesWord) {
+                      continue;
+                    }
+
+                    // Avoid duplicate attachment
+                    const cleanTitle = txt.split("\n")[0].trim().toLowerCase();
+                    if (attached.some(att => att.toLowerCase().includes(cleanTitle) || cleanTitle.includes(att.toLowerCase()))) {
+                      continue;
+                    }
+
+                    if (!(await ensureMenuOpen())) break;
+                    const prevLen = getPromptChips().length;
+                    imgBtn.click();
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const addPromptBtn = Array.from(document.querySelectorAll("button")).find(b => (b.innerText || "").includes("Add to prompt") && !b.disabled);
+                    if (addPromptBtn) addPromptBtn.click();
+
+                    await poll(() => getPromptChips().length > prevLen, 400, 15);
+                    attached.push(cleanTitle);
+                  }
+                }
+              }
+
+              // Close backdrop cleanly
+              const backdrop = document.querySelector(".cdk-overlay-backdrop");
+              if (backdrop) backdrop.click();
+
+              const finalChips = getPromptChips().map(c => c.innerText.trim());
+              return {
+                success: attached.length > 0 || finalChips.length > 0,
+                attachedCount: attached.length,
+                attached,
+                chipsCount: finalChips.length,
+                chips: finalChips
+              };
+            }
+
+            // evaluateJavascript cannot await a Promise; keep the extension's result for Kotlin to collect.
+            function attachStart(key, targetName) {
+              window.__agFlowRes[key] = { done: false };
+              var beforeCount = chipIds().length;
+              attachLibraryAssetBatch([targetName.replace(/^@/, '').trim()], false, '').then(function (value) {
+                // Frame slots use Image ingredient buttons, outside the extension's ingredient-chip count.
+                var count = chipIds().length;
+                if (count > beforeCount) { value.success = true; value.chipsCount = count; }
+                window.__agFlowRes[key] = { done: true, value: value };
+              }, function (error) {
+                window.__agFlowRes[key] = { done: true, error: String(error) };
+              });
+              return { ok: true };
+            }
+            function clickAddToPrompt() {
+              var root = picker();
+              if (!root) return { ok: false, error: 'picker_not_open' };
+              var btns = Array.prototype.filter.call(root.querySelectorAll('button'), shown);
+              var addPromptBtn = btns.find(function(b) {
+                return (b.matches('button.detail-add-to-prompt-btn') || /(^|\s)add to prompt\s*$/i.test(label(b))) && !disabled(b);
+              });
+              if (addPromptBtn) return clickEl(addPromptBtn);
+              return { ok: false, error: 'button_not_found' };
+            }
+            function closeAddMenu() {
+              if (!picker()) return { ok: true };
+              var backdrop = Array.prototype.filter.call(document.querySelectorAll('.cdk-overlay-backdrop'), shown).pop();
+              if (backdrop) clickEl(backdrop);
+              escape();
+              return { ok: true };
+            }
+
+            function fastInsertPrompt(text) {
+              // Text insertion sequence from flow_mcp's fastFillAndSubmitPrompt.
+              var box = document.querySelector("div.ProseMirror, flow-rich-text-editor div[role='textbox'], div[contenteditable='true']");
+              if (!box) return { success: false, reason: 'Prompt box not found' };
+              box.focus();
+              document.execCommand('selectAll', false, null);
+              document.execCommand('delete', false, null);
+              document.execCommand('insertText', false, text);
+              box.dispatchEvent(new InputEvent('beforeinput', {
+                bubbles: true, cancelable: true, inputType: 'insertText', data: text
+              }));
+              box.dispatchEvent(new Event('input', { bubbles: true }));
+              var accepted = promptValue().value === norm(text);
+              blurAll();
+              return { success: accepted };
             }
 
             // ---------- RPC (batchexecute) ----------
@@ -625,7 +1100,7 @@ object FlowPageScripts {
             function sameList(a, b) { return JSON.stringify(a || []) === JSON.stringify(b || []); }
             function validate(rpc, a, exp) {
               var p = [];
-              if (!a) return ['could not read the request'];
+              if (!a) return [];
               if ((exp.rpcs || []).indexOf(rpc) < 0) return ['wrong request kind ' + rpc + ' (expected ' + (exp.rpcs || []).join('/') + ')'];
               if (rpc === UPSCALE_RPC) {
                 if (a[0] !== exp.mediaId) p.push('upscale media ' + a[0] + ' != ' + exp.mediaId);
@@ -679,7 +1154,10 @@ object FlowPageScripts {
                   })[0];
                   if (!id) return null;
                   var args = null;
-                  try { args = JSON.parse(JSON.parse(new URLSearchParams(String(reqBody)).get('f.req'))[0][0][1]); } catch (e) {}
+                  try {
+                    var rawReq = (reqBody && typeof reqBody.get === 'function') ? reqBody.get('f.req') : (typeof reqBody === 'string' ? new URLSearchParams(reqBody).get('f.req') : null);
+                    if (rawReq) args = JSON.parse(JSON.parse(rawReq)[0][0][1]);
+                  } catch (e) {}
                   window.__agFlowCapN++;
                   var entry = { n: window.__agFlowCapN, rpc: id, args: args, done: false, status: 0, body: '' };
                   var exp = window.__agFlowExpect;
@@ -820,7 +1298,12 @@ object FlowPageScripts {
               menuClick: menuClick, clickAria: clickAria, mainImageId: mainImageId, openHistory: openHistory,
               historyCount: historyCount, historyClick: historyClick, blurAll: blurAll, promptValue: promptValue, chipIds: chipIds, chipPoint: chipPoint,
               expect: expect, clearExpect: clearExpect, freezeZoom: freezeZoom, tileHover: tileHover,
-              tileMoreOptions: tileMoreOptions, blobChunk: blobChunk, blobDrop: blobDrop
+              tileMoreOptions: tileMoreOptions, blobChunk: blobChunk, blobDrop: blobDrop,
+              configureSettingsFast: configureSettingsFast, fastInsertPrompt: fastInsertPrompt,
+              openAddMenu: openAddMenu, isAddMenuOpen: isAddMenuOpen, switchAddMenuTab: switchAddMenuTab,
+              attachStart: attachStart, clickAddToPrompt: clickAddToPrompt, closeAddMenu: closeAddMenu,
+              clickEl: clickEl, clickRadio: clickRadio, clickModelButton: clickModelButton, clickPickerTab: clickPickerTab, clickChip: clickChip, byText: byText, agentPill: agentPill,
+              clickPickerOption: clickPickerOption, clickPickerButton: clickPickerButton, submitInfo: submitInfo
             };
           })();
         }
@@ -829,10 +1312,11 @@ object FlowPageScripts {
     /**
      * Wraps [expr] (which may use `s`, the helper library) so it returns its result as a JSON string.
      */
-    fun call(expr: String): String = """
+    fun call(expr: String, automationActive: Boolean = false): String = """
         (function () {
         $LIB
           var s = window.__agFlow;
+          if ($automationActive) s.freezeZoom(true);
           try { return JSON.stringify($expr); } catch (e) { return JSON.stringify({ error: String(e) }); }
         })();
     """.trimIndent()

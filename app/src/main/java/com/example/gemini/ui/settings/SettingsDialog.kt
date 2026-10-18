@@ -2611,9 +2611,19 @@ private fun McpSubScreen(
                 "PATH" to "/data/data/com.termux/files/home/.local/bin:/data/data/com.termux/files/usr/bin:/system/bin"
             )
             val presets = listOf(
-                Triple("Browser/Terminal Automation", "SSE", com.example.gemini.domain.model.McpServerSpec(
-                    serverName = "browser_terminal_automation",
-                    serverUrl = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/mcp",
+                Triple("Browser Automation", "SSE", com.example.gemini.domain.model.McpServerSpec(
+                    serverName = "browser_mcp",
+                    serverUrl = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/browser",
+                    headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
+                )),
+                Triple("Terminal Automation", "SSE", com.example.gemini.domain.model.McpServerSpec(
+                    serverName = "terminal_mcp",
+                    serverUrl = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/terminal",
+                    headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
+                )),
+                Triple("Google Flow", "SSE", com.example.gemini.domain.model.McpServerSpec(
+                    serverName = "google_flow_mcp",
+                    serverUrl = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/google_flow",
                     headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
                 )),
                 Triple("Local Tools", "Stdio", com.example.gemini.domain.model.McpServerSpec(
@@ -7893,7 +7903,7 @@ private fun AutomationSubScreen(
                     )
                     Spacer(modifier = Modifier.height(3.dp))
                     Text(
-                        text = "To use these automation tools, the \"Browser/Terminal Automation\" server (browser_terminal_automation) must be added in MCP Server Settings (by default it is off/not added). Once added, the switches below control which specific tool permissions are granted to the AI.",
+                        text = "To use these automation tools, the respective automation server (browser_mcp, terminal_mcp, or google_flow_mcp) must be added in MCP Server Settings. Once added, the switches below control which specific tool permissions are granted to the AI.",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                         lineHeight = 17.sp

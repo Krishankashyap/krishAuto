@@ -29,6 +29,12 @@ import java.util.concurrent.Executors
  */
 class AndroidLocalBridgeServer private constructor() {
 
+    enum class McpEndpoint(val serverName: String) {
+        BROWSER("browser_mcp"),
+        TERMINAL("terminal_mcp"),
+        GOOGLE_FLOW("google_flow_mcp")
+    }
+
     companion object {
         private const val TAG = "AndroidBridgeServer"
         private const val MAX_HEADER_BYTES = 64 * 1024
@@ -234,7 +240,9 @@ class AndroidLocalBridgeServer private constructor() {
             // Route request
             runBlocking {
                 when {
-                    path == "/mcp" || path == "/rpc" -> handleMcpHttp(method, body, out)
+                    path == "/browser" -> handleMcpHttp(McpEndpoint.BROWSER, method, body, out)
+                    path == "/terminal" -> handleMcpHttp(McpEndpoint.TERMINAL, method, body, out)
+                    path == "/google_flow" -> handleMcpHttp(McpEndpoint.GOOGLE_FLOW, method, body, out)
                     path == "/api/health" -> {
                         val res = JSONObject().apply {
                             put("status", "ok")
@@ -263,7 +271,7 @@ class AndroidLocalBridgeServer private constructor() {
             if (out != null && req != null && !out.used) {
                 runCatching {
                     val path = req.rawPath.substringBefore("?")
-                    if (path == "/mcp" || path == "/rpc") {
+                    if (path == "/browser" || path == "/terminal" || path == "/google_flow") {
                         val id = runCatching { JSONObject(req.body).opt("id") }.getOrNull()
                         sendResponse(out, 200, "application/json", jsonRpcError(id, -32603, "Internal error: ${t.message ?: t.javaClass.simpleName}").toString())
                     } else {
@@ -285,7 +293,7 @@ class AndroidLocalBridgeServer private constructor() {
      * MCP over HTTP: a POSTed JSON-RPC request gets its response, notifications (no id) get 202 with no body, a
      * batch gets an array, and GET (the optional server-sent event stream) is not offered (405).
      */
-    private suspend fun handleMcpHttp(method: String, body: String, out: OutputStream) {
+    private suspend fun handleMcpHttp(endpoint: McpEndpoint, method: String, body: String, out: OutputStream) {
         if (method != "POST") {
             sendResponse(out, 405, "application/json", jsonRpcError(null, -32600, "Use POST for MCP requests").toString(), allow = "POST, OPTIONS")
             return
@@ -305,7 +313,7 @@ class AndroidLocalBridgeServer private constructor() {
                     continue
                 }
                 if (!item.has("id")) continue
-                responses.put(runMcpRequest(item))
+                responses.put(runMcpRequest(item, endpoint))
             }
             if (responses.length() == 0) sendResponse(out, 202, "application/json", "")
             else sendResponse(out, 200, "application/json", responses.toString())
@@ -316,13 +324,13 @@ class AndroidLocalBridgeServer private constructor() {
             req == null -> sendResponse(out, 200, "application/json", jsonRpcError(null, -32700, "Parse error").toString())
             // a notification (e.g. notifications/initialized) has no id and gets no response
             !req.has("id") -> sendResponse(out, 202, "application/json", "")
-            else -> sendResponse(out, 200, "application/json", runMcpRequest(req).toString())
+            else -> sendResponse(out, 200, "application/json", runMcpRequest(req, endpoint).toString())
         }
     }
 
     /** One JSON-RPC request; a failure becomes a JSON-RPC error instead of a dropped connection. */
-    private suspend fun runMcpRequest(req: JSONObject): JSONObject = try {
-        handleMcpJsonRpc(req.toString())
+    private suspend fun runMcpRequest(req: JSONObject, endpoint: McpEndpoint): JSONObject = try {
+        handleMcpJsonRpc(req.toString(), endpoint)
     } catch (e: CancellationException) {
         throw e
     } catch (t: Throwable) {
@@ -374,7 +382,7 @@ class AndroidLocalBridgeServer private constructor() {
     // MCP JSON-RPC 2.0 PROTOCOL HANDLER
     // ==========================================
 
-    private suspend fun handleMcpJsonRpc(body: String): JSONObject {
+    private suspend fun handleMcpJsonRpc(body: String, endpoint: McpEndpoint): JSONObject {
         val req = try { JSONObject(body) } catch (_: Exception) { JSONObject() }
         val id = req.opt("id")
         val jsonrpc = req.optString("jsonrpc", "2.0")
@@ -393,7 +401,7 @@ class AndroidLocalBridgeServer private constructor() {
                         put("tools", JSONObject())
                     })
                     put("serverInfo", JSONObject().apply {
-                        put("name", "android_device_bridge")
+                        put("name", endpoint.serverName)
                         put("version", "1.0.0")
                     })
                 }
@@ -404,15 +412,25 @@ class AndroidLocalBridgeServer private constructor() {
             }
             "tools/list" -> {
                 res.put("result", JSONObject().apply {
-                    put("tools", getMcpToolsList())
+                    put("tools", getMcpToolsList(endpoint))
                 })
             }
             "tools/call" -> {
                 val params = req.optJSONObject("params") ?: JSONObject()
                 val toolName = params.optString("name", "")
-                val args = params.optJSONObject("arguments") ?: JSONObject()
-                val callResult = executeMcpToolCall(toolName, args)
-                res.put("result", callResult)
+                val availableTools = getMcpToolsList(endpoint)
+                val toolExists = (0 until availableTools.length()).any {
+                    availableTools.getJSONObject(it).getString("name") == toolName
+                }
+                if (!toolExists) {
+                    res.put("error", JSONObject().apply {
+                        put("code", -32601)
+                        put("message", "Tool '$toolName' is not available on ${endpoint.serverName}")
+                    })
+                } else {
+                    val args = params.optJSONObject("arguments") ?: JSONObject()
+                    res.put("result", executeMcpToolCall(toolName, args))
+                }
             }
             else -> {
                 res.put("error", JSONObject().apply {
@@ -439,11 +457,11 @@ class AndroidLocalBridgeServer private constructor() {
         return com.example.gemini.data.preferences.AuthPreferences(ctx).isFlowAutomationEnabledSync()
     }
 
-    private fun getMcpToolsList(): JSONArray {
+    private fun getMcpToolsList(endpoint: McpEndpoint): JSONArray {
         val tools = JSONArray()
-        val browserEnabled = isBrowserAutomationEnabled()
-        val terminalEnabled = isTerminalAutomationEnabled()
-        val flowEnabled = isFlowAutomationEnabled()
+        val browserEnabled = isBrowserAutomationEnabled() && endpoint == McpEndpoint.BROWSER
+        val terminalEnabled = isTerminalAutomationEnabled() && endpoint == McpEndpoint.TERMINAL
+        val flowEnabled = isFlowAutomationEnabled() && endpoint == McpEndpoint.GOOGLE_FLOW
 
         if (browserEnabled) {
             // 1. Browser Open URL

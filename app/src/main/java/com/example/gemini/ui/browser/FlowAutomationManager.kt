@@ -235,6 +235,7 @@ class FlowAutomationManager private constructor() {
     fun syncTab(tab: BrowserTabSession) {
         tab.aiLocked = tabLocked
         tab.aiBusy = isBusy
+        BrowserSessionManager.instance.setFlowAutomationInput(tab, isBusy)
         if (!tabLocked) tab.userUnlocked = false
     }
 
@@ -533,19 +534,17 @@ class FlowAutomationManager private constructor() {
 
     private class GuardOutcome(val submission: Submission?, val problems: List<String>)
 
-    private suspend fun runJob(job: FlowJob, submitted: CompletableDeferred<Unit>) {
+    private suspend fun runJob(job: FlowJob, submitted: CompletableDeferred<Unit>) = busy {
         job.status = "running"
         try {
             val sub = try {
                 uiMutex.withLock {
-                    busy {
-                        try {
-                            submitJob(job)
-                        } catch (e: Exception) {
-                            // Don't leave references or text behind for the next request
-                            if (e !is CancellationException) findFlowTab()?.let { tab -> runCatching { clearPrompt(tab.id) } }
-                            throw e
-                        }
+                    try {
+                        submitJob(job)
+                    } catch (e: Exception) {
+                        // Don't leave references or text behind for the next request
+                        if (e !is CancellationException) findFlowTab()?.let { tab -> runCatching { clearPrompt(tab.id) } }
+                        throw e
                     }
                 }
             } finally {
@@ -559,7 +558,7 @@ class FlowAutomationManager private constructor() {
                 } else {
                     "dry run: the request was captured, passed the guard, and was blocked before sending (no credits used)"
                 }
-                return
+                return@busy
             }
             val files = when (job.request.action) {
                 FlowAction.UPSCALE_IMAGE -> runUpscale(job, sub)
@@ -620,22 +619,10 @@ class FlowAutomationManager private constructor() {
         val refIds = req.references.map { resolve(it) }
         val startId = req.startFrame?.let { resolve(it) }
         val endId = req.endFrame?.let { resolve(it) }
-        // Every reference must exist on the server (a temporary client id would silently be ignored by Flow)
-        (refIds + listOfNotNull(startId, endId)).distinct().forEach { id ->
-            runCatching { getMedia(tabId, id) }.onFailure { throw Exception("Reference media $id does not exist in Flow (${it.message})") }
-        }
         val expectedChips = listOfNotNull(startId, endId) + refIds
+        job.stage = "loading references"
+        val names = referenceNames(tabId, expectedChips, projectId)
         val expectation = generationExpectation(req, refIds, startId, endId)
-        // Spec §7.3b: attach through the grid tile menu (Animate = start frame, Add to prompt = end frame / reference)
-        val attachList = buildList {
-            startId?.let { add(Triple(it, "Animate", "Start")) }
-            endId?.let { add(Triple(it, "Add to prompt", "End")) }
-            refIds.forEach { add(Triple(it, "Add to prompt", null)) }
-        }
-        val tags = if (attachList.isNotEmpty()) {
-            job.stage = "preparing references"
-            tagTiles(tabId, attachList.map { it.first }.distinct())
-        } else emptyMap()
 
         var reserved = 0
         try {
@@ -654,13 +641,24 @@ class FlowAutomationManager private constructor() {
                 }
                 job.stage = "entering prompt"
                 enterPrompt(tabId, req.prompt)
-                attachList.forEachIndexed { i, (id, menuItem, slot) ->
-                    job.stage = "attaching ${slot?.lowercase()?.let { "$it frame" } ?: "reference"} ${i + 1}/${attachList.size}"
-                    attachViaTile(tabId, id, menuItem, slot, tags[id]?.tag)
+
+                if (refIds.isNotEmpty()) {
+                    job.stage = "attaching references"
+                    attachReferences(tabId, refIds, names)
                 }
-                if (attachList.isNotEmpty()) {
+                startId?.let { id ->
+                    job.stage = "attaching start frame"
+                    val title = names.getValue(id)
+                    attachById(tabId, id, "Start", title)
+                }
+                endId?.let { id ->
+                    job.stage = "attaching end frame"
+                    val title = names.getValue(id)
+                    attachById(tabId, id, "End", title)
+                }
+
+                if (expectedChips.isNotEmpty()) {
                     verifyChips(tabId, expectedChips)
-                    // "Animate" switches the bar to Video → Frames and may change settings: re-check them
                     job.stage = "re-checking settings"
                     applySettings(tabId, req)
                     ensurePromptText(tabId, req.prompt)
@@ -678,7 +676,6 @@ class FlowAutomationManager private constructor() {
             throw Exception("Blocked before sending, no credits used: ${lastProblems.joinToString("; ")}")
         } finally {
             if (reserved > 0) req.budget?.release(reserved)
-            untagTiles(tabId, tags)
         }
     }
 
@@ -722,7 +719,7 @@ class FlowAutomationManager private constructor() {
         val projectId = media.optString("projectId")
         job.projectId = projectId
         openProject(tabId, projectId)
-        val tags = tagTiles(tabId, listOf(mediaId))
+        val title = referenceNames(tabId, listOf(mediaId), projectId).getValue(mediaId)
         try {
             ensureAgentModeOff(tabId)
             val target = "${req.upscaleTo} Upscaled"
@@ -733,13 +730,12 @@ class FlowAutomationManager private constructor() {
             }
             job.stage = "submitting"
             val outcome = submitThroughGuard(tabId, expectation) {
-                tileAction(tabId, tags.getValue(mediaId).tag, listOf("Download", target), "Flow offers no \"$target\" for this image (4K may need a Nano Banana Pro image)")
+                tileAction(tabId, title, listOf("Download", target), "Flow offers no \"$target\" for this image (4K may need a Nano Banana Pro image)")
             }
             return outcome.submission ?: throw Exception("Blocked before sending, no credits used: ${outcome.problems.joinToString("; ")}")
         } finally {
             closeMenus(tabId)
             clearGridSearch(tabId)
-            untagTiles(tabId, tags)
         }
     }
 
@@ -756,7 +752,7 @@ class FlowAutomationManager private constructor() {
         job.projectId = projectId
         openProject(tabId, projectId)
         job.knownMedia = projectContents(tabId, projectId).mediaIds()
-        val tags = tagTiles(tabId, listOf(mediaId))
+        val title = referenceNames(tabId, listOf(mediaId), projectId).getValue(mediaId)
         try {
             ensureAgentModeOff(tabId)
             val expectation = JSONObject().apply {
@@ -766,13 +762,12 @@ class FlowAutomationManager private constructor() {
             }
             job.stage = "submitting"
             val outcome = submitThroughGuard(tabId, expectation) {
-                tileAction(tabId, tags.getValue(mediaId).tag, listOf("Download", req.upscaleTo), "Flow offers no ${req.upscaleTo} upscale for this video")
+                tileAction(tabId, title, listOf("Download", req.upscaleTo), "Flow offers no ${req.upscaleTo} upscale for this video")
             }
             return outcome.submission ?: throw Exception("Blocked before sending, no credits used: ${outcome.problems.joinToString("; ")}")
         } finally {
             closeMenus(tabId)
             clearGridSearch(tabId)
-            untagTiles(tabId, tags)
         }
     }
 
@@ -793,54 +788,50 @@ class FlowAutomationManager private constructor() {
             ?: throw Exception("Could not find the tile of image $mediaId")
         job.projectId = projectId
         val extras = req.references
-        val tags = if (extras.isNotEmpty()) tagTiles(tabId, extras) else emptyMap()
-        try {
-            job.stage = "opening the image editor"
-            openPage(tabId, "/project/$projectId/edit/$workflowId", forceReload = extras.isNotEmpty())
-            ensureAgentModeOff(tabId)
-            val versions = projectContents(tabId, projectId).let { arr ->
-                (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }
-                    .filter { it.optString("workflowId") == workflowId }
-                    .sortedBy { it.optLong("created") }
-                    .map { it.optString("mediaId") }
-            }
-            if (versions.isNotEmpty() && versions.last() != mediaId) {
-                job.stage = "selecting the image version"
-                selectHistoryVersion(tabId, mediaId)
-            }
-            if (req.model.isNotBlank() || req.aspectRatio.isNotBlank()) {
-                job.stage = "applying settings"
-                openSettings(tabId)
-                try {
-                    if (req.model.isNotBlank()) pickModel(tabId, req.model)
-                    if (req.aspectRatio.isNotBlank()) pickRadio(tabId, req.aspectRatio, "aspect ratio")
-                } finally {
-                    closeSettings(tabId)
-                }
-            }
-            clearPrompt(tabId)
-            job.stage = "entering prompt"
-            enterPrompt(tabId, req.prompt)
-            extras.forEachIndexed { i, id ->
-                job.stage = "attaching reference ${i + 1}/${extras.size}"
-                attachById(tabId, id, null, tags[id]?.tag ?: id)
-            }
-            ensurePromptText(tabId, req.prompt)
-            val expectation = JSONObject().apply {
-                put("rpcs", JSONArray(listOf(FlowPageScripts.RPC_GENERATE_IMAGES)))
-                put("count", 1)
-                put("refs", JSONArray(listOf(mediaId) + extras))
-                put("workflowId", workflowId)
-                IMAGE_MODEL_KEYS[req.model]?.let { put("modelKey", it) }
-                IMAGE_ASPECT_ENUM[req.aspectRatio]?.let { put("aspect", it) }
-                if (req.dryRun) put("dryRun", true)
-            }
-            job.stage = "submitting"
-            val outcome = submitThroughGuard(tabId, expectation) { tapStart(tabId) }
-            return outcome.submission ?: throw Exception("Blocked before sending, no credits used: ${outcome.problems.joinToString("; ")}")
-        } finally {
-            untagTiles(tabId, tags)
+        val names = referenceNames(tabId, extras, projectId)
+        job.stage = "opening the image editor"
+        openPage(tabId, "/project/$projectId/edit/$workflowId")
+        ensureAgentModeOff(tabId)
+        val versions = projectContents(tabId, projectId).let { arr ->
+            (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }
+                .filter { it.optString("workflowId") == workflowId }
+                .sortedBy { it.optLong("created") }
+                .map { it.optString("mediaId") }
         }
+        if (versions.isNotEmpty() && versions.last() != mediaId) {
+            job.stage = "selecting the image version"
+            selectHistoryVersion(tabId, mediaId)
+        }
+        if (req.model.isNotBlank() || req.aspectRatio.isNotBlank()) {
+            job.stage = "applying settings"
+            openSettings(tabId)
+            try {
+                if (req.model.isNotBlank()) pickModel(tabId, req.model)
+                if (req.aspectRatio.isNotBlank()) pickRadio(tabId, req.aspectRatio, "aspect ratio")
+            } finally {
+                closeSettings(tabId)
+            }
+        }
+        clearPrompt(tabId)
+        job.stage = "entering prompt"
+        enterPrompt(tabId, req.prompt)
+        extras.forEachIndexed { i, id ->
+            job.stage = "attaching reference ${i + 1}/${extras.size}"
+            attachById(tabId, id, null, names.getValue(id))
+        }
+        ensurePromptText(tabId, req.prompt)
+        val expectation = JSONObject().apply {
+            put("rpcs", JSONArray(listOf(FlowPageScripts.RPC_GENERATE_IMAGES)))
+            put("count", 1)
+            put("refs", JSONArray(listOf(mediaId) + extras))
+            put("workflowId", workflowId)
+            IMAGE_MODEL_KEYS[req.model]?.let { put("modelKey", it) }
+            IMAGE_ASPECT_ENUM[req.aspectRatio]?.let { put("aspect", it) }
+            if (req.dryRun) put("dryRun", true)
+        }
+        job.stage = "submitting"
+        val outcome = submitThroughGuard(tabId, expectation) { tapStart(tabId) }
+        return outcome.submission ?: throw Exception("Blocked before sending, no credits used: ${outcome.problems.joinToString("; ")}")
     }
 
     /** Spec §8.0 Extend (Veo clips only): continues a clip with "What happens next?" in the video editor (fZytfe). */
@@ -883,29 +874,47 @@ class FlowAutomationManager private constructor() {
         return outcome.submission ?: throw Exception("Blocked before sending, no credits used: ${outcome.problems.joinToString("; ")}")
     }
 
-    /** Taps Flow's "Start generation" button (a real tap: image submits ignore script clicks). */
+    /** Submits once with a trusted touch after the button and visual viewport have settled. */
     private suspend fun tapStart(tabId: String) {
-        val start = jsObject(tabId, "s.aria('Start generation')")?.takeIf { it.optBoolean("found") }
-            ?: throw Exception("Flow's \"Start generation\" button was not found. Visible controls: ${visibleControls(tabId)}")
-        if (start.optBoolean("disabled")) throw Exception("Flow's \"Start generation\" button is disabled (prompt not accepted?)")
-        tap(tabId, start)
+        val tab = requireTab(tabId)
+        BrowserSessionManager.instance.hideKeyboard(tab)
+        BrowserSessionManager.instance.zoomOutFully(tab)
+        delay(300)
+        var previous: JSONObject? = null
+        var lastError = "submit_button_not_found"
+        val target = waitFor(10_000, 150) {
+            val info = jsObject(tabId, "s.submitInfo()")
+            lastError = info?.optString("error") ?: "page_not_ready"
+            if (info == null || !info.optBoolean("canTap") || info.optBoolean("disabled")) {
+                previous = null
+                return@waitFor null
+            }
+            val stable = previous?.let {
+                kotlin.math.abs(it.optDouble("fx") - info.optDouble("fx")) < 0.002 &&
+                    kotlin.math.abs(it.optDouble("fy") - info.optDouble("fy")) < 0.002
+            } == true
+            previous = info
+            info.takeIf { stable }
+        } ?: throw Exception("Flow's \"Start generation\" button is not ready: $lastError. Visible controls: ${visibleControls(tabId)}")
+        BrowserSessionManager.instance.dispatchTap(tabId, target.getDouble("fx").toFloat(), target.getDouble("fy").toFloat()).getOrThrow()
     }
 
     /** Arms the Send Guard, runs [trigger] (tap Start / click a menu item) and waits until the page has sent (or the guard blocked) the request. */
     private suspend fun submitThroughGuard(tabId: String, expectation: JSONObject, trigger: suspend () -> Unit): GuardOutcome {
-        val mark = jsObject(tabId, "s.capMark()")?.optInt("n") ?: 0
-        jsValue(tabId, "s.expect(${q(expectation.toString())})")
-        try {
+        val mark = jsObject(tabId, "s.capMark()")?.getInt("n")
+            ?: throw Exception("Could not start Flow's request capture")
+        if (jsObject(tabId, "s.expect(${q(expectation.toString())})")?.optBoolean("ok") != true) {
+            throw Exception("Could not arm Flow's Send Guard")
+        }
+        val request = try {
             trigger()
-        } catch (e: Exception) {
+            // reCAPTCHA can take time before any RPC is visible. A second tap could submit twice.
+            waitFor(30_000, 250) {
+                jsObject(tabId, "s.capSent($mark)")?.takeIf { it.optBoolean("found") }
+            }
+        } finally {
             jsValue(tabId, "s.clearExpect()")
-            throw e
-        }
-        val request = waitFor(30_000, 300) { jsObject(tabId, "s.capSent($mark)")?.takeIf { it.optBoolean("found") } }
-        if (request == null) {
-            jsValue(tabId, "s.clearExpect()")
-            throw Exception("Flow did not send the request after tapping start. Check the Flow tab in the AntiGem browser.")
-        }
+        } ?: throw Exception("Flow did not send the request within 30 seconds of tapping Start. Check the Flow tab before retrying.")
         val problems = request.optJSONArray("problems")?.let { a -> (0 until a.length()).map { a.optString(it) } }.orEmpty()
         val dryRun = problems.firstOrNull() == "dry-run"
         if (request.optBoolean("blocked") && !dryRun) return GuardOutcome(null, problems)
@@ -1103,9 +1112,9 @@ class FlowAutomationManager private constructor() {
     }
 
     /** Navigates the Flow tab to [path] (e.g. a video editor) once no reply is pending on the current page. */
-    private suspend fun openPage(tabId: String, path: String, forceReload: Boolean = false) {
+    private suspend fun openPage(tabId: String, path: String) {
         val bManager = BrowserSessionManager.instance
-        if (forceReload || readUi(tabId)?.optString("path")?.trimEnd('/') != path) {
+        if (readUi(tabId)?.optString("path")?.trimEnd('/') != path) {
             if (!waitUntil(240_000, 1_000) { pageRepliesPending.get() <= 0 }) {
                 throw Exception("Still waiting for earlier Flow generations to answer; try again shortly")
             }
@@ -1168,8 +1177,8 @@ class FlowAutomationManager private constructor() {
             jsObject(tabId, "s.agentState()")?.let { !it.optBoolean("on") && !it.optBoolean("instructions") } == true
         }
         if (!off) {
-            // Script click didn't take: try a real tap on the pill
-            jsObject(tabId, "s.agentToggle()")?.takeIf { it.optBoolean("found") }?.let { tap(tabId, it) }
+            // Script click didn't take: try clickEl on agent pill
+            jsObject(tabId, "s.clickEl(s.agentPill())")
             if (!waitUntil(5_000, 300) { jsObject(tabId, "s.agentState()")?.let { !it.optBoolean("on") && !it.optBoolean("instructions") } == true }) {
                 throw Exception("Could not turn off Flow's Agent mode. Turn it off in the Flow tab and try again.")
             }
@@ -1202,9 +1211,9 @@ class FlowAutomationManager private constructor() {
     private suspend fun openSettings(tabId: String) {
         repeat(3) {
             if (readUi(tabId)?.optBoolean("settingsOpen") == true) return
-            val trigger = jsObject(tabId, "s.aria('Settings trigger')")?.takeIf { it.optBoolean("found") }
-                ?: throw Exception("Flow's \"Settings trigger\" was not found. Visible controls: ${visibleControls(tabId)}")
-            tap(tabId, trigger)
+            val clicked = jsObject(tabId, "s.clickAria('Settings trigger')")?.optBoolean("ok") == true ||
+                jsObject(tabId, "s.clickEl('button[aria-label=\"Settings trigger\"], button.settings-trigger-button')")?.optBoolean("ok") == true
+            if (!clicked) throw Exception("Flow's \"Settings trigger\" was not found. Visible controls: ${visibleControls(tabId)}")
             if (waitUntil(1_500, 250) { readUi(tabId)?.optBoolean("settingsOpen") == true }) return
         }
         throw Exception("Flow's settings popover did not open after 3 tries")
@@ -1219,16 +1228,15 @@ class FlowAutomationManager private constructor() {
         }
     }
 
-    /** Taps the settings radio whose label ends with [label] (icon ligatures come first), unless already checked. */
+    /** Selects the settings radio whose label ends with [label] (icon ligatures come first), unless already checked. */
     private suspend fun pickRadio(tabId: String, label: String, what: String, optional: Boolean = false) {
         val pattern = "(^|\\s)${reEscape(label)}( info)?\$"
-        val radio = jsObject(tabId, "s.radio(${q(pattern)})")?.takeIf { it.optBoolean("found") }
-        if (radio == null) {
+        val res = jsObject(tabId, "s.clickRadio(${q(pattern)})")
+        if (res == null || res.optBoolean("ok") != true) {
             if (optional) return
             throw Exception("Flow has no $what option '$label'. Options: ${listText(tabId, "s.radios()")}")
         }
-        if (radio.optBoolean("checked")) return
-        tap(tabId, radio)
+        if (res.optBoolean("alreadyChecked")) return
         if (!waitUntil(2_000, 250) { jsObject(tabId, "s.radio(${q(pattern)})")?.optBoolean("checked") == true }) {
             throw Exception("Flow did not select $what '$label'. Options: ${listText(tabId, "s.radios()")}")
         }
@@ -1238,17 +1246,17 @@ class FlowAutomationManager private constructor() {
         val button = jsObject(tabId, "s.modelButton()")?.takeIf { it.optBoolean("found") }
             ?: throw Exception("Flow's \"Select model family\" button was not found in the settings popover")
         if (modelMatches(button.optString("label"), model)) return
-        tap(tabId, button)
+        val clicked = jsObject(tabId, "s.clickModelButton()")?.optBoolean("ok") == true
+        if (!clicked) throw Exception("Flow's \"Select model family\" button could not be clicked")
         if (!waitUntil(2_000, 250) { readUi(tabId)?.optBoolean("menuOpen") == true }) {
             throw Exception("Flow's model menu did not open")
         }
-        val item = jsObject(tabId, "s.menuItem(${q(model)})")?.takeIf { it.optBoolean("found") }
-        if (item == null) {
+        val clickedItem = jsObject(tabId, "s.menuClick(${q(model)})")?.takeIf { it.optBoolean("ok") || it.optBoolean("disabled") }
+        if (clickedItem == null) {
             val offered = listText(tabId, "s.menuItems()")
             jsValue(tabId, "s.escape()")
             throw Exception("Flow has no model '$model'. Models offered: $offered")
         }
-        tap(tabId, item)
         val applied = waitUntil(3_000, 250) {
             jsObject(tabId, "s.modelButton()")?.let { modelMatches(it.optString("label"), model) } == true
         }
@@ -1266,15 +1274,25 @@ class FlowAutomationManager private constructor() {
     }
 
     private suspend fun enterPrompt(tabId: String, prompt: String) {
-        val box = jsObject(tabId, "s.findPrompt()")?.takeIf { it.optBoolean("found") }
-            ?: throw Exception("Flow's prompt box was not found. Visible controls: ${visibleControls(tabId)}")
-        tap(tabId, box)
+        val tab = requireTab(tabId)
+        val fast = jsObject(tabId, "s.fastInsertPrompt(${q(prompt)})")
+        BrowserSessionManager.instance.hideKeyboard(tab)
+        BrowserSessionManager.instance.zoomOutFully(tab)
+        if (fast?.optBoolean("success") == true) {
+            if (!waitUntil(3_000, 150) { promptMatches(tabId, prompt) }) {
+                throw Exception("Flow's prompt box did not retain the requested text")
+            }
+            return
+        }
         val res = jsObject(tabId, "s.setPrompt(${q(prompt)})")
         if (res?.optBoolean("ok") != true) {
             throw Exception("Flow's prompt box did not accept the text (${res?.optString("error")?.ifBlank { null } ?: "no response"})")
         }
-        requireTab(tabId).let { BrowserSessionManager.instance.zoomOutFully(it) }
-        delay(500)
+        BrowserSessionManager.instance.hideKeyboard(tab)
+        BrowserSessionManager.instance.zoomOutFully(tab)
+        if (!waitUntil(3_000, 150) { promptMatches(tabId, prompt) }) {
+            throw Exception("Flow's prompt box did not retain the requested text")
+        }
     }
 
     // ==========================================
@@ -1407,14 +1425,20 @@ class FlowAutomationManager private constructor() {
 
     /** Opens the asset picker: via the "+" button, or via the "Start" / "End" frame slot. */
     private suspend fun openPicker(tabId: String, slot: String?) {
-        if (readUi(tabId)?.optBoolean("pickerOpen") == true) return
-        val opener = (if (slot == null) jsObject(tabId, "s.aria('Add ingredients to the prompt box')") else jsObject(tabId, "s.text(${q("^\\s*${slot}\\s*$")})"))
-            ?.takeIf { it.optBoolean("found") }
-            ?: throw Exception(
+        // A frame slot must never reuse an ingredient picker left open by an earlier attachment.
+        if (slot != null) closePicker(tabId)
+        if (slot == null && readUi(tabId)?.optBoolean("pickerOpen") == true) return
+        val clicked = if (slot == null) {
+            jsObject(tabId, "s.openAddMenu()")?.optBoolean("ok") == true
+        } else {
+            jsObject(tabId, "s.clickEl(s.byText(${q("^\\s*${slot}\\s*$")}))")?.optBoolean("ok") == true
+        }
+        if (!clicked) {
+            throw Exception(
                 if (slot == null) "Flow's \"Add ingredients\" (+) button was not found. Visible controls: ${visibleControls(tabId)}"
                 else "Flow's \"$slot\" frame slot was not found (does this video model support frames?). Visible controls: ${visibleControls(tabId)}"
             )
-        tap(tabId, opener)
+        }
         if (!waitUntil(4_000, 250) { readUi(tabId)?.optBoolean("pickerOpen") == true }) {
             throw Exception("Flow's asset picker did not open")
         }
@@ -1423,10 +1447,11 @@ class FlowAutomationManager private constructor() {
     private suspend fun closePicker(tabId: String) {
         repeat(3) {
             if (readUi(tabId)?.optBoolean("pickerOpen") != true) return
-            jsValue(tabId, "s.escape()")
+            jsValue(tabId, "s.closeAddMenu()")
             BrowserSessionManager.instance.dispatchKey(tabId, KeyEvent.KEYCODE_ESCAPE)
             waitUntil(1_000, 250) { readUi(tabId)?.optBoolean("pickerOpen") != true }
         }
+        if (readUi(tabId)?.optBoolean("pickerOpen") == true) throw Exception("Flow's asset picker could not be closed")
     }
 
     private suspend fun closeMenus(tabId: String) {
@@ -1440,87 +1465,60 @@ class FlowAutomationManager private constructor() {
 
     /**
      * Spec §7.4 fallback: attaches media [mediaId] as an ingredient (slot null) or a Start/End frame through the
-     * asset picker, searching for [searchTitle] (a unique tag when the tile was tagged). The attached chip's real
-     * media id is verified; a wrong chip is removed and the attach retried.
+     * asset picker, using the extension's library → asset → Add to prompt workflow. Selection never guesses
+     * an option index; the new chip must carry the requested media id before we continue.
      */
     private suspend fun attachById(tabId: String, mediaId: String, slot: String?, searchTitle: String) {
-        for (attempt in 0 until 3) {
+        var lastError = "reference was not attached"
+        repeat(2) {
             val before = chipIds(tabId)
-            if (mediaId in before) return
-            openPicker(tabId, slot)
+            if (slot == null && mediaId in before) return
+            // Ingredients use the extension's own Add-menu handling; frames open their specific slot first.
+            if (slot != null) openPicker(tabId, slot)
             try {
-                val option = findPickerOption(tabId, searchTitle, if (searchTitle.startsWith("mcpref-")) 0 else attempt)
-                    ?: throw Exception("Media $mediaId (\"$searchTitle\") was not found in Flow's picker. References must be in the project open in Flow (pass a local file path to upload it).")
-                tap(tabId, option)
-                if (!waitUntil(1_500, 250) { chipIds(tabId).size > before.size }) {
-                    jsObject(tabId, "s.pickerButton('add\\\\s*to\\\\s*prompt')")?.takeIf { it.optBoolean("found") }?.let { tap(tabId, it) }
+                val key = "attach${synchronized(this) { ++rpcCounter }}"
+                val started = jsObject(tabId, "s.attachStart(${q(key)}, ${q(searchTitle)})")
+                if (started?.optBoolean("ok") != true) throw Exception("Could not start Flow's library attachment")
+                val result = waitFor(8_000, 100) {
+                    jsObject(tabId, "s.result(${q(key)})")?.takeIf { it.optBoolean("done") }
+                } ?: throw Exception("Flow's library attachment did not finish")
+                val attached = result.optJSONObject("value")
+                lastError = result.optString("error").ifBlank {
+                    attached?.optString("reason")?.ifBlank { null } ?: "attached chip did not match media $mediaId"
                 }
+                if (attached?.optBoolean("success") == true && waitUntil(5_000, 200) {
+                    val ids = chipIds(tabId)
+                    ids.size == before.size + 1 && ids.take(before.size) == before && ids.last() == mediaId
+                }) return
             } finally {
                 closePicker(tabId)
             }
-            // The chip's thumbnail carries the real id; it is empty for a moment while loading
-            waitUntil(5_000, 300) { chipIds(tabId).let { ids -> mediaId in ids || (ids.size > before.size && ids.none { it.isBlank() }) } }
-            if (mediaId in chipIds(tabId)) return
             removeWrongChip(tabId, before)
+            if (chipIds(tabId) != before) throw Exception("Attaching media $mediaId changed existing references; stopped before sending")
         }
-        throw Exception("Could not attach media $mediaId to Flow's prompt (the attached chip had a different id)")
+        throw Exception("Could not attach media $mediaId (\"$searchTitle\")${slot?.let { " as the $it frame" }.orEmpty()}: $lastError")
     }
 
     private suspend fun removeWrongChip(tabId: String, before: List<String>) {
         val after = chipIds(tabId)
         after.withIndex().firstOrNull { (i, id) -> i >= before.size || id !in before }?.let { (i, _) ->
-            jsObject(tabId, "s.chipPoint($i)")?.takeIf { it.optBoolean("found") }?.let { tap(tabId, it) }
+            removeChipAt(tabId, i)
             delay(500)
         }
     }
 
-    /** A tile renamed to a unique tag so the grid search finds exactly it; restored afterwards. */
-    private data class TileTag(val tag: String, val workflowId: String, val projectId: String, val original: String)
-
-    private fun tagFor(mediaId: String) = "mcpref-${mediaId.take(8)}"
-
-    /**
-     * Spec §7.3b: renames each media's tile to a unique tag (direct RPC), then reloads the page once — the grid
-     * caches titles, so an API rename isn't visible until reload. Only media of the open project can be tagged.
-     */
-    private suspend fun tagTiles(tabId: String, mediaIds: List<String>): Map<String, TileTag> {
-        val currentProject = readUi(tabId)?.let { projectIdOf(it) }
-        val tags = LinkedHashMap<String, TileTag>()
-        for (id in mediaIds.distinct()) {
-            val media = getMedia(tabId, id)
-            val workflowId = media.optString("workflowId").takeIf { it.isNotBlank() && it != "null" } ?: continue
-            val projectId = media.optString("projectId")
-            if (currentProject != null && projectId != currentProject) continue
-            val original = runCatching {
-                projectContents(tabId, projectId).let { arr ->
-                    (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }.firstOrNull { it.optString("mediaId") == id }?.optString("title")
-                }
-            }.getOrNull() ?: media.optString("title")
-            renameWorkflow(tabId, workflowId, projectId, tagFor(id))
-            tags[id] = TileTag(tagFor(id), workflowId, projectId, original)
+    /** Resolve the names used by the extension without changing titles or reloading the page. */
+    private suspend fun referenceNames(tabId: String, mediaIds: List<String>, projectId: String): Map<String, String> {
+        if (mediaIds.isEmpty()) return emptyMap()
+        val contents = projectContents(tabId, projectId)
+        val byId = (0 until contents.length()).mapNotNull { contents.optJSONObject(it) }
+            .associateBy { it.optString("mediaId") }
+        return mediaIds.distinct().associateWith { id ->
+            val media = byId[id] ?: runCatching { getMedia(tabId, id) }.getOrElse {
+                throw Exception("Reference media $id does not exist in Flow (${it.message})")
+            }
+            media.optString("title").ifBlank { id }
         }
-        if (tags.isNotEmpty()) reloadPage(tabId)
-        return tags
-    }
-
-    private suspend fun untagTiles(tabId: String, tags: Map<String, TileTag>) {
-        tags.values.forEach { t -> runCatching { renameWorkflow(tabId, t.workflowId, t.projectId, t.original) } }
-    }
-
-    /** Reloads the Flow page (after replies still expected on it have arrived) and waits until it's usable again. */
-    private suspend fun reloadPage(tabId: String) {
-        val bManager = BrowserSessionManager.instance
-        if (!waitUntil(240_000, 1_000) { pageRepliesPending.get() <= 0 }) {
-            throw Exception("Still waiting for earlier Flow generations to answer; try again shortly")
-        }
-        val tab = requireTab(tabId)
-        withContext(Dispatchers.Main) { bManager.loadUrlInTab(tab, tab.url) }
-        delay(1500)
-        bManager.waitForPageLoad(tabId, 30_000)
-        if (!waitUntil(30_000) { readUi(tabId)?.let { it.optBoolean("ready") && it.optBoolean("prompt") } == true }) {
-            throw Exception("The Flow page did not come back after reloading. Visible controls: ${visibleControls(tabId)}")
-        }
-        ensureAgentModeOff(tabId)
     }
 
     private suspend fun clearGridSearch(tabId: String) {
@@ -1585,11 +1583,15 @@ class FlowAutomationManager private constructor() {
 
     /** Re-types the prompt if attaching references cleared it, then checks the chips survived. */
     private suspend fun ensurePromptText(tabId: String, prompt: String) {
-        val current = (jsValue(tabId, "s.promptValue()") as? JSONObject)?.optString("value").orEmpty()
-        if (current.contains(prompt.trim().take(30))) return
+        if (promptMatches(tabId, prompt)) return
         val chips = chipIds(tabId)
         enterPrompt(tabId, prompt)
         if (chipIds(tabId) != chips) throw Exception("Re-typing the prompt removed the attached references")
+    }
+
+    private suspend fun promptMatches(tabId: String, prompt: String): Boolean {
+        val current = jsObject(tabId, "s.promptValue()")?.optString("value") ?: return false
+        return current == prompt.replace(Regex("\\s+"), " ").trim()
     }
 
     /** Searches the open picker for [title], also trying its Uploads / All / Images tabs; returns option #[index]. */
@@ -1602,8 +1604,8 @@ class FlowAutomationManager private constructor() {
         }
         search()?.let { return it }
         for (tab in listOf("Uploads", "All", "Images")) {
-            val tabPoint = jsObject(tabId, "s.pickerTab(${q(tab)})")?.takeIf { it.optBoolean("found") } ?: continue
-            tap(tabId, tabPoint)
+            val switched = jsObject(tabId, "s.clickPickerTab(${q(tab)})")?.optBoolean("ok") == true
+            if (!switched) continue
             search()?.let { return it }
         }
         return null
@@ -1612,6 +1614,14 @@ class FlowAutomationManager private constructor() {
     private suspend fun chipIds(tabId: String): List<String> {
         val arr = jsValue(tabId, "s.chipIds()") as? JSONArray ?: return emptyList()
         return (0 until arr.length()).map { arr.optString(it) }
+    }
+
+    /** Attaches references via Flow's Add menu (Ingredients drawer), matching the Chrome extension workflow. */
+    private suspend fun attachReferences(tabId: String, refIds: List<String>, names: Map<String, String>) {
+        for (id in refIds) {
+            val title = names.getValue(id)
+            attachById(tabId, id, null, title)
+        }
     }
 
     /**
@@ -1644,22 +1654,24 @@ class FlowAutomationManager private constructor() {
 
     private suspend fun removeChipAt(tabId: String, index: Int) {
         val before = chipIds(tabId).size
-        val chip = jsObject(tabId, "s.chipPoint($index)")?.takeIf { it.optBoolean("found") } ?: return
-        tap(tabId, chip)
-        waitUntil(2_000, 250) { chipIds(tabId).size < before }
+        val res = jsObject(tabId, "s.clickChip($index)")
+        if (res?.optBoolean("ok") == true) {
+            waitUntil(2_000, 250) { chipIds(tabId).size < before }
+        }
     }
 
     /** Removes leftover text and reference chips so they don't leak into the next request (verified empty). */
     private suspend fun clearPrompt(tabId: String) {
-        jsObject(tabId, "s.aria('Clear prompt')")?.takeIf { it.optBoolean("found") }?.let {
-            tap(tabId, it)
-            delay(300)
-        }
+        jsObject(tabId, "s.clickAria('Clear prompt')")
+        delay(300)
         repeat(8) {
-            if (chipIds(tabId).isEmpty()) return
-            removeChipAt(tabId, 0)
+            if (chipIds(tabId).isNotEmpty()) removeChipAt(tabId, 0)
         }
-        if (chipIds(tabId).isNotEmpty()) Log.w(TAG, "Leftover reference chips could not be removed: ${chipIds(tabId)}")
+        if (chipIds(tabId).isNotEmpty()) throw Exception("Leftover reference chips could not be removed: ${chipIds(tabId)}")
+        if (jsObject(tabId, "s.setPrompt('')")?.optBoolean("ok") != true || !promptMatches(tabId, "")) {
+            throw Exception("Flow's prompt text could not be cleared")
+        }
+        jsValue(tabId, "s.blurAll()")
     }
 
     /** Renames a media's tile (workflow) with a direct RPC. */
@@ -1886,7 +1898,7 @@ class FlowAutomationManager private constructor() {
 
     private suspend fun jsValue(tabId: String, expr: String): Any? {
         requireTab(tabId)
-        val raw = BrowserSessionManager.instance.evaluateJs(tabId, FlowPageScripts.call(expr)).getOrNull() ?: return null
+        val raw = BrowserSessionManager.instance.evaluateJs(tabId, FlowPageScripts.call(expr, automationActive = isBusy)).getOrNull() ?: return null
         return try { JSONTokener(raw).nextValue() } catch (_: Exception) { null }
     }
 

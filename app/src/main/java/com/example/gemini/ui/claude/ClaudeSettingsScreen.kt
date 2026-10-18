@@ -527,10 +527,22 @@ private fun McpPage(deps: ClaudeSettingsDeps) {
         runCatching { android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID) }.getOrNull().orEmpty()
     }
     val presets = listOf(
-        "Browser/Terminal Automation" to ClaudeMcpAddRequest(
-            name = "browser_terminal_automation",
+        "Browser Automation" to ClaudeMcpAddRequest(
+            name = "browser_mcp",
             transport = "http",
-            url = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/mcp",
+            url = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/browser",
+            headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
+        ),
+        "Terminal Automation" to ClaudeMcpAddRequest(
+            name = "terminal_mcp",
+            transport = "http",
+            url = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/terminal",
+            headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
+        ),
+        "Google Flow" to ClaudeMcpAddRequest(
+            name = "google_flow_mcp",
+            transport = "http",
+            url = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/google_flow",
             headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
         )
     )
