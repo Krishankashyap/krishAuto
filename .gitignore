@@ -58,3 +58,5 @@ termux-app/
 /backup_bootstrap
 output/
 .agents/
+flow_mcp/
+finally.zip
