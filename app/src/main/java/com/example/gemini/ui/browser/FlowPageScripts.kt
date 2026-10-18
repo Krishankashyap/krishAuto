@@ -15,7 +15,7 @@ package com.example.gemini.ui.browser
  */
 object FlowPageScripts {
 
-    const val VERSION = 20
+    const val VERSION = 21
 
     // RPC ids from the spec's verified catalog
     const val RPC_CREDITS = "nzlxg"
@@ -631,6 +631,26 @@ object FlowPageScripts {
               return out.slice(0, 60);
             }
 
+            // Like the extension, reuse unchanged settings instead of opening the popover for every prompt.
+            // Keep the exact request key too: the compact trigger does not expose every video setting.
+            var settingsCache = null;
+            function settingsFingerprint() {
+              var trigger = byAria('Settings trigger');
+              return trigger ? norm(trigger.innerText || trigger.textContent) : null;
+            }
+            function cachedSettings(key) {
+              var c = settingsCache;
+              return { matches: !!c && c.key === key && c.path === location.pathname &&
+                c.root === promptRoot() && c.fingerprint === settingsFingerprint() &&
+                !pane() && !menu() && !picker(), cost: c ? c.cost : null };
+            }
+            function rememberSettings(key, value) {
+              settingsCache = { key: key, path: location.pathname, root: promptRoot(),
+                fingerprint: settingsFingerprint(), cost: value };
+              return { ok: true };
+            }
+            function invalidateSettings() { settingsCache = null; return { ok: true }; }
+
             function configureSettingsFast(isVideo, targetRatio, targetDuration, targetCount, targetModel) {
               var trigger = document.querySelector("button[aria-label='Settings trigger'], button.settings-trigger-button");
               var trigText = (trigger ? (trigger.innerText || '') : '').toLowerCase();
@@ -937,6 +957,13 @@ object FlowPageScripts {
               if (backdrop) clickEl(backdrop);
               escape();
               return { ok: true };
+            }
+
+            function clearPromptFast() {
+              if (chipIds().length) return { ok: false };
+              if (promptValue().value) setPrompt('');
+              blurAll();
+              return { ok: chipIds().length === 0 && promptValue().value === '' };
             }
 
             function fastInsertPrompt(text) {
@@ -1300,6 +1327,8 @@ object FlowPageScripts {
               expect: expect, clearExpect: clearExpect, freezeZoom: freezeZoom, tileHover: tileHover,
               tileMoreOptions: tileMoreOptions, blobChunk: blobChunk, blobDrop: blobDrop,
               configureSettingsFast: configureSettingsFast, fastInsertPrompt: fastInsertPrompt,
+              cachedSettings: cachedSettings, rememberSettings: rememberSettings,
+              invalidateSettings: invalidateSettings, clearPromptFast: clearPromptFast,
               openAddMenu: openAddMenu, isAddMenuOpen: isAddMenuOpen, switchAddMenuTab: switchAddMenuTab,
               attachStart: attachStart, clickAddToPrompt: clickAddToPrompt, closeAddMenu: closeAddMenu,
               clickEl: clickEl, clickRadio: clickRadio, clickModelButton: clickModelButton, clickPickerTab: clickPickerTab, clickChip: clickChip, byText: byText, agentPill: agentPill,
@@ -1312,6 +1341,15 @@ object FlowPageScripts {
     /**
      * Wraps [expr] (which may use `s`, the helper library) so it returns its result as a JSON string.
      */
+    fun callInstalled(expr: String, automationActive: Boolean = false): String = """
+        (function () {
+          var s = window.__agFlow;
+          if (!s || s.v !== $VERSION) return JSON.stringify({ __agFlowMissing: true });
+          if ($automationActive && !window.__agFlowInputLock) s.freezeZoom(true);
+          try { return JSON.stringify($expr); } catch (e) { return JSON.stringify({ error: String(e) }); }
+        })();
+    """.trimIndent()
+
     fun call(expr: String, automationActive: Boolean = false): String = """
         (function () {
         $LIB

@@ -15,7 +15,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import androidx.compose.runtime.getValue
@@ -138,7 +137,7 @@ class FlowJob(val id: String, val request: FlowRequest) {
  * Google Flow (flow.google.com) automation inside the in-app browser, following google-flow-mcp-spec.md:
  * reads and project management go through Flow's own RPCs from inside the page; generation goes through the
  * real UI (the page creates its own reCAPTCHA token), the outgoing request is verified and the result is read
- * from the page's response. Jobs run one at a time. Media files are stored once in ~/flow-media, named by
+ * from the page's response. Submissions run one at a time while results are awaited in parallel. Media files are stored once in ~/flow-media, named by
  * Flow's media id, so the same image/video is never saved twice.
  */
 class FlowAutomationManager private constructor() {
@@ -147,7 +146,6 @@ class FlowAutomationManager private constructor() {
         private const val TAG = "FlowAutomation"
         const val FLOW_URL = "https://flow.google.com"
         private const val MAX_JOBS_KEPT = 50
-        private const val MAX_IN_FLIGHT = 4
         private const val BLOB_CHUNK = 512 * 1024
         private val UPLOAD_TYPES = listOf("png", "jpg", "jpeg", "webp", "gif", "heif", "heic", "mp4", "m4v", "mov", "3gp", "avi")
         const val NOT_SIGNED_IN = "NOT SIGNED IN: the user is not signed in to Google Flow. Stop here and ask them to open the Flow tab in the AntiGem browser and sign in with their Google account. Do not retry any flow_* tool until they confirm."
@@ -184,8 +182,6 @@ class FlowAutomationManager private constructor() {
     private val jobs = ConcurrentHashMap<String, FlowJob>()
     /** Coroutine of every job that is submitting or waiting for its result */
     private val workers = ConcurrentHashMap<String, Job>()
-    /** At most this many jobs are submitted-and-generating at the same time */
-    private val inFlight = Semaphore(MAX_IN_FLIGHT)
     /** Jobs whose reply is still expected on the Flow page (the tab must not navigate away meanwhile) */
     private val pageRepliesPending = AtomicInteger(0)
     /** Number of running operations that drive the Flow page (user input is blocked meanwhile) */
@@ -288,22 +284,16 @@ class FlowAutomationManager private constructor() {
         if (workerStarted) return
         workerStarted = true
         // Jobs are submitted one after another without waiting for results: the next prompt is sent as soon as
-        // the previous request has left the page; results are awaited in parallel (max MAX_IN_FLIGHT at once).
+        // the previous request has left the page. Waiting for renders must not hold up later submissions.
         scope.launch {
             for (job in queue) {
                 if (job.isFinished) continue
-                inFlight.acquire()
-                if (job.isFinished) {
-                    inFlight.release()
-                    continue
-                }
                 val submitted = CompletableDeferred<Unit>()
                 val worker = scope.launch {
                     try {
                         runJob(job, submitted)
                     } finally {
                         submitted.complete(Unit)
-                        inFlight.release()
                         workers.remove(job.id)
                         if (!job.isFinished) {
                             job.status = "cancelled"
@@ -414,7 +404,6 @@ class FlowAutomationManager private constructor() {
     private suspend fun requireLogin(tabId: String) {
         val ui = readUi(tabId)
         if (requireTab(tabId).url.contains("accounts.google.com") || ui == null || !ui.optBoolean("ready")) throw Exception(NOT_SIGNED_IN)
-        rpc(tabId, FlowPageScripts.RPC_CREDITS, JSONArray(), "credits")
     }
 
     suspend fun listModels(): Result<Any?> = runCatching {
@@ -670,6 +659,7 @@ class FlowAutomationManager private constructor() {
                     if (!sub.dryRun) reserved = 0 // credits are spent from here on
                     return sub
                 }
+                jsValue(tabId, "s.invalidateSettings()")
                 lastProblems = outcome.problems
                 Log.w(TAG, "Send Guard blocked job ${job.id} (attempt $attempt): $lastProblems")
             }
@@ -879,10 +869,9 @@ class FlowAutomationManager private constructor() {
         val tab = requireTab(tabId)
         BrowserSessionManager.instance.hideKeyboard(tab)
         BrowserSessionManager.instance.zoomOutFully(tab)
-        delay(300)
         var previous: JSONObject? = null
         var lastError = "submit_button_not_found"
-        val target = waitFor(10_000, 150) {
+        val target = waitFor(10_000, 40) {
             val info = jsObject(tabId, "s.submitInfo()")
             lastError = info?.optString("error") ?: "page_not_ready"
             if (info == null || !info.optBoolean("canTap") || info.optBoolean("disabled")) {
@@ -901,15 +890,15 @@ class FlowAutomationManager private constructor() {
 
     /** Arms the Send Guard, runs [trigger] (tap Start / click a menu item) and waits until the page has sent (or the guard blocked) the request. */
     private suspend fun submitThroughGuard(tabId: String, expectation: JSONObject, trigger: suspend () -> Unit): GuardOutcome {
-        val mark = jsObject(tabId, "s.capMark()")?.getInt("n")
-            ?: throw Exception("Could not start Flow's request capture")
-        if (jsObject(tabId, "s.expect(${q(expectation.toString())})")?.optBoolean("ok") != true) {
+        val armed = jsObject(tabId, "({n:s.capMark().n,ok:s.expect(${q(expectation.toString())}).ok})")
+        if (armed?.optBoolean("ok") != true) {
             throw Exception("Could not arm Flow's Send Guard")
         }
+        val mark = armed.getInt("n")
         val request = try {
             trigger()
             // reCAPTCHA can take time before any RPC is visible. A second tap could submit twice.
-            waitFor(30_000, 250) {
+            waitFor(30_000, 40) {
                 jsObject(tabId, "s.capSent($mark)")?.takeIf { it.optBoolean("found") }
             }
         } finally {
@@ -1191,8 +1180,15 @@ class FlowAutomationManager private constructor() {
      * then close. Returns the credit cost Flow shows, if any.
      */
     private suspend fun applySettings(tabId: String, req: FlowRequest): Int? {
+        val key = listOf(req.isVideo, req.model, req.aspectRatio, req.resolution, req.durationSec,
+            req.count, req.references.isNotEmpty()).joinToString("|")
+        val cached = jsObject(tabId, "s.cachedSettings(${q(key)})")
+        if (cached?.optBoolean("matches") == true) {
+            return cached.takeIf { !it.isNull("cost") }?.optInt("cost")
+        }
+        jsValue(tabId, "s.invalidateSettings()")
         openSettings(tabId)
-        try {
+        val cost = try {
             pickRadio(tabId, if (req.isVideo) "Video" else "Image", "mode")
             if (req.isVideo) pickRadio(tabId, if (req.references.isNotEmpty()) "Ingredients" else "Frames", "video mode")
             pickModel(tabId, req.model)
@@ -1202,10 +1198,12 @@ class FlowAutomationManager private constructor() {
                 req.durationSec?.let { pickRadio(tabId, "${it}s", "duration", optional = true) }
             }
             pickRadio(tabId, "x${req.count}", "output count")
-            return jsObject(tabId, "s.cost()")?.takeIf { !it.isNull("cost") }?.optInt("cost")
+            jsObject(tabId, "s.cost()")?.takeIf { !it.isNull("cost") }?.optInt("cost")
         } finally {
             closeSettings(tabId)
         }
+        jsValue(tabId, "s.rememberSettings(${q(key)},${cost ?: "null"})")
+        return cost
     }
 
     private suspend fun openSettings(tabId: String) {
@@ -1279,9 +1277,6 @@ class FlowAutomationManager private constructor() {
         BrowserSessionManager.instance.hideKeyboard(tab)
         BrowserSessionManager.instance.zoomOutFully(tab)
         if (fast?.optBoolean("success") == true) {
-            if (!waitUntil(3_000, 150) { promptMatches(tabId, prompt) }) {
-                throw Exception("Flow's prompt box did not retain the requested text")
-            }
             return
         }
         val res = jsObject(tabId, "s.setPrompt(${q(prompt)})")
@@ -1662,8 +1657,9 @@ class FlowAutomationManager private constructor() {
 
     /** Removes leftover text and reference chips so they don't leak into the next request (verified empty). */
     private suspend fun clearPrompt(tabId: String) {
+        if (jsObject(tabId, "s.clearPromptFast()")?.optBoolean("ok") == true) return
         jsObject(tabId, "s.clickAria('Clear prompt')")
-        delay(300)
+        waitUntil(600, 40) { chipIds(tabId).isEmpty() }
         repeat(8) {
             if (chipIds(tabId).isNotEmpty()) removeChipAt(tabId, 0)
         }
@@ -1898,8 +1894,15 @@ class FlowAutomationManager private constructor() {
 
     private suspend fun jsValue(tabId: String, expr: String): Any? {
         requireTab(tabId)
-        val raw = BrowserSessionManager.instance.evaluateJs(tabId, FlowPageScripts.call(expr, automationActive = isBusy)).getOrNull() ?: return null
-        return try { JSONTokener(raw).nextValue() } catch (_: Exception) { null }
+        val manager = BrowserSessionManager.instance
+        val raw = manager.evaluateJs(tabId, FlowPageScripts.callInstalled(expr, automationActive = isBusy)).getOrNull() ?: return null
+        return try {
+            val value = JSONTokener(raw).nextValue()
+            if (value is JSONObject && value.optBoolean("__agFlowMissing")) {
+                val installed = manager.evaluateJs(tabId, FlowPageScripts.call(expr, automationActive = isBusy)).getOrNull() ?: return null
+                JSONTokener(installed).nextValue()
+            } else value
+        } catch (_: Exception) { null }
     }
 
     private suspend fun jsObject(tabId: String, expr: String): JSONObject? = jsValue(tabId, expr) as? JSONObject
