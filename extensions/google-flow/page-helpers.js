@@ -1,60 +1,15 @@
-package com.example.gemini.ui.browser
+// Page automation and request guard, migrated from the integrated Flow implementation.
 
-/**
- * JavaScript helpers injected into the Google Flow tab of the in-app browser (see google-flow-mcp-spec.md).
- *
- * - Reads and management (credits, models, projects, media, video status, create/rename project) call Flow's
- *   own `batchexecute` RPCs from inside the page, using the page's cookies and live WIZ_global_data tokens.
- * - Generation is submitted through the real UI ("Start generation"), so the page creates its own
- *   reCAPTCHA token. A Send Guard checks every generate request inside the page against what was asked for
- *   (model, aspect, count, mode, reference ids) and blocks it before it leaves the page if anything is wrong,
- *   so no credits are spent on a wrong request. The token is never read, created or replayed.
- * - UI elements are located only by ARIA labels, roles and visible text, scoped to Flow's CDK overlay panes.
- *
- * The library lives on `window.__agFlow` and is re-installed after every navigation.
- */
-object FlowPageScripts {
-
-    const val VERSION = 21
-
-    // RPC ids from the spec's verified catalog
-    const val RPC_CREDITS = "nzlxg"
-    const val RPC_MODELS = "HTrJv"
-    const val RPC_PROJECTS = "UpteDb"
-    const val RPC_PROJECT_CONTENTS = "Zzl0ze"
-    const val RPC_CREATE_PROJECT = "jHPbke"
-    const val RPC_RENAME_PROJECT = "o8DA4"
-    const val RPC_GET_MEDIA = "as29s"
-    const val RPC_VIDEO_STATUS = "jwpduf"
-    const val RPC_GENERATE_IMAGES = "ogiZ0b"
-    const val RPC_UPLOAD = "maseQ"
-    const val RPC_VIDEO_TEXT = "YhhmEf"
-    const val RPC_VIDEO_START = "eb1hJf"
-    const val RPC_VIDEO_START_END = "nprQif"
-    const val RPC_VIDEO_REFERENCES = "MZZa6b"
-    val RPC_GENERATE_VIDEO = listOf(RPC_VIDEO_TEXT, RPC_VIDEO_START, RPC_VIDEO_START_END, RPC_VIDEO_REFERENCES)
-    const val RPC_EDIT_VIDEO = "jIps6"
-    const val RPC_UPSCALE_IMAGE = "SPrCad"
-    const val RPC_RENAME_WORKFLOW = "mYWVGd"
-    const val RPC_UPDATE_WORKFLOWS = "pGCYOe"
-    const val RPC_CONCAT = "GjQLTd"
-    const val RPC_CONCAT_STATUS = "IxdSwd"
-    const val RPC_GIF = "QZasKb"
-    const val RPC_CREATE_SCENE = "rqZuUc"
-    const val RPC_EXTEND_VIDEO = "fZytfe"
-    const val RPC_UPSCALE_VIDEO = "p0UkFb"
-
-    private val LIB = """
-        if (!window.__agFlow || window.__agFlow.v !== ${VERSION}) {
+        if (!window.__agFlow || window.__agFlow.v !== 23) {
           window.__agFlow = (function () {
-            var IMAGE_RPC = '${RPC_GENERATE_IMAGES}';
-            var EDIT_RPC = '${RPC_EDIT_VIDEO}';
-            var UPSCALE_RPC = '${RPC_UPSCALE_IMAGE}';
-            var EXTEND_RPC = '${RPC_EXTEND_VIDEO}';
-            var UPSCALE_VIDEO_RPC = '${RPC_UPSCALE_VIDEO}';
-            var GEN_RPCS = [IMAGE_RPC, '${RPC_GENERATE_VIDEO.joinToString("', '")}', EDIT_RPC, UPSCALE_RPC, EXTEND_RPC, UPSCALE_VIDEO_RPC];
-            var UPLOAD_RPC = '${RPC_UPLOAD}';
-            var REFS_RPC = '${RPC_VIDEO_REFERENCES}';
+            var IMAGE_RPC = 'ogiZ0b';
+            var EDIT_RPC = 'jIps6';
+            var UPSCALE_RPC = 'SPrCad';
+            var EXTEND_RPC = 'fZytfe';
+            var UPSCALE_VIDEO_RPC = 'p0UkFb';
+            var GEN_RPCS = [IMAGE_RPC, 'YhhmEf', 'eb1hJf', 'nprQif', 'MZZa6b', EDIT_RPC, UPSCALE_RPC, EXTEND_RPC, UPSCALE_VIDEO_RPC];
+            var UPLOAD_RPC = 'maseQ';
+            var REFS_RPC = 'MZZa6b';
 
             function shown(el) {
               if (!el || !el.getBoundingClientRect) return false;
@@ -723,7 +678,7 @@ object FlowPageScripts {
               return { ok: false, error: 'tab_not_found' };
             }
             // Port of flow_mcp/service-worker.js: attachLibraryAssetsBatch (generation path).
-            async function attachLibraryAssetBatch(targets, doClear, promptText) {
+            async function attachLibraryAssetBatch(targets, doClear, promptText, targetMediaId) {
               const poll = (fn, timeout = 600, interval = 12) => new Promise(resolve => {
                 const res = fn();
                 if (res) return resolve(res);
@@ -804,6 +759,7 @@ object FlowPageScripts {
               // Helper to find match across name, aria-label, alt, title with priority to exact match
               const findMatch = (targetName) => {
                 const btns = Array.from(document.querySelectorAll("button.asset-item, flow-menu-item, [role='option'], [role='menuitem'], .cdk-overlay-pane button"));
+                if(targetMediaId){const byId=btns.find(b=>b.outerHTML.includes(targetMediaId));if(byId)return byId;}
                 const clean = targetName.replace(/^[:#@]/, "").toLowerCase().trim();
                 const cleanSpaced = clean.replace(/_/g, " ");
 
@@ -821,7 +777,7 @@ object FlowPageScripts {
                   const aria = (b.getAttribute("aria-label") || "").toLowerCase();
                   const alt = (b.querySelector("img")?.getAttribute("alt") || "").toLowerCase();
                   const title = (b.getAttribute("title") || "").toLowerCase();
-                  const all = `${'$'}{txt} ${'$'}{aria} ${'$'}{alt} ${'$'}{title}`;
+                  const all = `${txt} ${aria} ${alt} ${title}`;
                   return all.includes(clean) || all.includes(cleanSpaced);
                 });
               };
@@ -882,7 +838,7 @@ object FlowPageScripts {
                     const txt = (imgBtn.innerText || "").toLowerCase();
                     const aria = (imgBtn.getAttribute("aria-label") || "").toLowerCase();
                     const alt = (imgBtn.querySelector("img")?.getAttribute("alt") || "").toLowerCase();
-                    const fullInfo = `${'$'}{txt} ${'$'}{aria} ${'$'}{alt}`;
+                    const fullInfo = `${txt} ${aria} ${alt}`;
 
                     // Check if this image matches any scene tag or key prompt terms
                     const matchesTag = sceneTags.some(tag => tag.length >= 3 && fullInfo.includes(tag));
@@ -928,10 +884,10 @@ object FlowPageScripts {
             }
 
             // evaluateJavascript cannot await a Promise; keep the extension's result for Kotlin to collect.
-            function attachStart(key, targetName) {
+            function attachStart(key, targetName, targetMediaId) {
               window.__agFlowRes[key] = { done: false };
               var beforeCount = chipIds().length;
-              attachLibraryAssetBatch([targetName.replace(/^@/, '').trim()], false, '').then(function (value) {
+              attachLibraryAssetBatch([targetName.replace(/^@/, '').trim()], false, '', targetMediaId).then(function (value) {
                 // Frame slots use Image ingredient buttons, outside the extension's ingredient-chip count.
                 var count = chipIds().length;
                 if (count > beforeCount) { value.success = true; value.chipsCount = count; }
@@ -1127,7 +1083,7 @@ object FlowPageScripts {
             function sameList(a, b) { return JSON.stringify(a || []) === JSON.stringify(b || []); }
             function validate(rpc, a, exp) {
               var p = [];
-              if (!a) return [];
+              if (!a) return ['Could not decode the outgoing request; stopped before sending'];
               if ((exp.rpcs || []).indexOf(rpc) < 0) return ['wrong request kind ' + rpc + ' (expected ' + (exp.rpcs || []).join('/') + ')'];
               if (rpc === UPSCALE_RPC) {
                 if (a[0] !== exp.mediaId) p.push('upscale media ' + a[0] + ' != ' + exp.mediaId);
@@ -1229,10 +1185,16 @@ object FlowPageScripts {
                 return os.apply(this, arguments);
               };
               var of = window.fetch;
-              window.fetch = function (input, init) {
+              window.fetch = async function (input, init) {
                 var url = typeof input === 'string' ? input : (input && input.url) || '';
-                var entry = url.indexOf('batchexecute') >= 0 ? start(url, init && init.body) : null;
-                if (entry && entry.blocked) return Promise.reject(new TypeError('Blocked by AntiGem send guard'));
+                var body = init && init.body;
+                // Angular also calls fetch(new Request(...)) without an init argument. Read a clone
+                // for validation, leaving the original request body and headers untouched.
+                if (url.indexOf('batchexecute') >= 0 && body == null && input && typeof input.clone === 'function') {
+                  body = await input.clone().text();
+                }
+                var entry = url.indexOf('batchexecute') >= 0 ? start(url, body) : null;
+                if (entry && entry.blocked) throw new TypeError('Blocked by AntiGem send guard');
                 var p = of.apply(window, arguments);
                 if (entry) {
                   p.then(function (res) {
@@ -1314,7 +1276,7 @@ object FlowPageScripts {
             }
 
             return {
-              v: ${VERSION},
+              v: 23,
               ui: ui, aria: aria, text: text, agentToggle: agentToggle, radio: radio, radios: radios,
               modelButton: modelButton, menuItem: menuItem, menuItems: menuItems, cost: cost, findPrompt: findPrompt,
               setPrompt: setPrompt, escape: escape, controls: controls, rpcStart: rpcStart, result: result,
@@ -1336,26 +1298,4 @@ object FlowPageScripts {
             };
           })();
         }
-    """.trimIndent()
-
-    /**
-     * Wraps [expr] (which may use `s`, the helper library) so it returns its result as a JSON string.
-     */
-    fun callInstalled(expr: String, automationActive: Boolean = false): String = """
-        (function () {
-          var s = window.__agFlow;
-          if (!s || s.v !== $VERSION) return JSON.stringify({ __agFlowMissing: true });
-          if ($automationActive && !window.__agFlowInputLock) s.freezeZoom(true);
-          try { return JSON.stringify($expr); } catch (e) { return JSON.stringify({ error: String(e) }); }
-        })();
-    """.trimIndent()
-
-    fun call(expr: String, automationActive: Boolean = false): String = """
-        (function () {
-        $LIB
-          var s = window.__agFlow;
-          if ($automationActive) s.freezeZoom(true);
-          try { return JSON.stringify($expr); } catch (e) { return JSON.stringify({ error: String(e) }); }
-        })();
-    """.trimIndent()
-}
+    

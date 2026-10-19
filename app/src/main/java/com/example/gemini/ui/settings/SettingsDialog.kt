@@ -87,6 +87,7 @@ enum class SettingsSection(val title: String, val subtitle: String) {
     MAIN("Settings & Preferences", "Configure your AntiGem experience"),
     APPEARANCE("Appearance & Theme", "Theme, dark mode, and chat font scaling"),
     SERVERS("Servers & Connectivity", "Configure AGY Hub and IDE Bridge endpoints"),
+    WEBVIEW_EXTENSIONS("WebView Extensions", "Install and manage MCP extensions for the browser"),
     MCP("MCP Servers", "Model Context Protocol tools & integrations"),
     SKILLS_PLUGINS("Skills & Plugins", "Agent capabilities, Google plugins, and extensions"),
     AUTOMATION("Automation & Device Tools", "Browser & Terminal AI agent permissions"),
@@ -411,6 +412,8 @@ fun SettingsDialog(
                         onSaveServerUrls = onSaveServerUrls
                     )
 
+                    SettingsSection.WEBVIEW_EXTENSIONS -> WebViewExtensionsScreen(onChanged = onRefreshMcpServers)
+
                     SettingsSection.MCP -> McpSubScreen(
                         mcpServers = mcpServers,
                         isLoading = isMcpLoading,
@@ -630,6 +633,16 @@ private fun MainSettingsMenu(
             cardBg = cardBg,
             cardBorder = cardBorder,
             onClick = { onNavigate(SettingsSection.SERVERS) }
+        )
+
+        SettingsCategoryCard(
+            icon = Icons.Outlined.Extension,
+            iconTint = MaterialTheme.colorScheme.primary,
+            title = "WebView Extensions",
+            subtitle = "Install ZIP, update, rename, enable or disable MCP extensions",
+            cardBg = cardBg,
+            cardBorder = cardBorder,
+            onClick = { onNavigate(SettingsSection.WEBVIEW_EXTENSIONS) }
         )
 
         if (agyOn) {
@@ -2388,6 +2401,7 @@ private fun McpSubScreen(
     onInstallCascadePlugin: (com.example.gemini.data.remote.dto.AvailableCascadePluginDto) -> Unit = {}
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    var chooseWebViewExtension by remember { mutableStateOf(false) }
     var showCascadeCatalogDialog by remember { mutableStateOf(false) }
     var serverToEdit by remember { mutableStateOf<com.example.gemini.domain.model.McpServerSpec?>(null) }
     var serverToDelete by remember { mutableStateOf<String?>(null) }
@@ -2606,11 +2620,22 @@ private fun McpSubScreen(
                     android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: ""
                 } catch (_: Exception) { "" }
             }
-            val termuxEnv = mapOf(
-                "LD_PRELOAD" to "/data/data/com.termux/files/usr/lib/libtermux-exec.so",
-                "PATH" to "/data/data/com.termux/files/home/.local/bin:/data/data/com.termux/files/usr/bin:/system/bin"
-            )
+            val extensionManager = remember { com.example.gemini.ui.browser.BrowserExtensionManager.instance }
+            if (chooseWebViewExtension) WebViewExtensionMcpPicker(onDismiss = { chooseWebViewExtension = false }) { extension ->
+                serverToEdit = com.example.gemini.domain.model.McpServerSpec(
+                    serverName = extensionManager.mcpServerName(extension.id),
+                    serverUrl = extensionManager.mcpUrl(extension.id),
+                    headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
+                )
+                chooseWebViewExtension = false
+                showDialog = true
+            }
             val presets = listOf(
+                Triple("WebView Extension Developer", "SSE", com.example.gemini.domain.model.McpServerSpec(
+                    serverName = "webview_extension_developer_mcp",
+                    serverUrl = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/extension_developer",
+                    headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
+                )),
                 Triple("Browser Automation", "SSE", com.example.gemini.domain.model.McpServerSpec(
                     serverName = "browser_mcp",
                     serverUrl = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/browser",
@@ -2621,40 +2646,17 @@ private fun McpSubScreen(
                     serverUrl = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/terminal",
                     headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
                 )),
-                Triple("Google Flow", "SSE", com.example.gemini.domain.model.McpServerSpec(
-                    serverName = "google_flow_mcp",
-                    serverUrl = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/google_flow",
-                    headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
-                )),
-                Triple("Local Tools", "Stdio", com.example.gemini.domain.model.McpServerSpec(
-                    serverName = "local_tools",
-                    command = "sh",
-                    args = listOf("-c", "python3 \"\$HOME/.gemini/local_tools.py\"")
-                )),
                 Triple("Stitch", "SSE", com.example.gemini.domain.model.McpServerSpec(
                     serverName = "stitch",
                     serverUrl = "https://stitch.googleapis.com/mcp",
                     headers = mapOf("X-Goog-Api-Key" to "")
                 )),
-                Triple("Thinking", "Stdio", com.example.gemini.domain.model.McpServerSpec(
-                    serverName = "thinking",
-                    command = "npx",
-                    args = listOf("-y", "@modelcontextprotocol/server-sequential-thinking"),
-                    env = termuxEnv
-                )),
-                Triple("Memory", "Stdio", com.example.gemini.domain.model.McpServerSpec(
-                    serverName = "memory",
-                    command = "npx",
-                    args = listOf("-y", "@modelcontextprotocol/server-memory"),
-                    env = termuxEnv
-                )),
-                Triple("Filesystem", "Stdio", com.example.gemini.domain.model.McpServerSpec(
-                    serverName = "filesystem",
-                    command = "npx",
-                    args = listOf("-y", "@modelcontextprotocol/server-filesystem", "."),
-                    env = termuxEnv
-                ))
             )
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { chooseWebViewExtension = true }
+            ) { Text("+ WebView Extension MCP", modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp), fontSize = 11.5.sp, fontWeight = FontWeight.Medium) }
             presets.forEach { (pName, typeBadge, spec) ->
                 Surface(
                     shape = RoundedCornerShape(8.dp),
@@ -8223,41 +8225,10 @@ private fun AutomationSubScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Exposed MCP Tools (29):",
+                    text = "This switch controls the legacy Google Flow endpoint only. Install, enable or disable the current extension in Settings → WebView Extensions, then choose it in MCP settings. Tool lists come from the installed extension.",
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    val flowTools = listOf(
-                        "flow_status", "flow_list_models", "flow_list_projects", "flow_create_project",
-                        "flow_rename_project", "flow_open_project", "flow_get_settings", "flow_list_media",
-                        "flow_get_media", "flow_upload_media", "flow_generate_image", "flow_generate_video", "flow_get_job", "flow_video_status", "flow_get_last_media", "flow_rename_media",
-                        "flow_trash_media", "flow_restore_media", "flow_combine_videos", "flow_video_to_gif", "flow_extract_frame",
-                        "flow_create_scene", "flow_edit_image", "flow_edit_video", "flow_extend_video", "flow_upscale_image", "flow_upscale_video", "flow_cancel", "flow_lock_tab"
-                    )
-                    flowTools.forEach { tool ->
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-                        ) {
-                            Text(
-                                text = tool,
-                                fontSize = 10.sp,
-                                fontFamily = FontFamily.Monospace,
-                                color = if (isFlowAutomationEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                            )
-                        }
-                    }
-                }
             }
         }
     }

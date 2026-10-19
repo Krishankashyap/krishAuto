@@ -76,6 +76,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.gemini.theme.ClaudeTerracotta
 import java.net.URLEncoder
 
@@ -128,7 +130,6 @@ fun BrowserScreen(
     var isControlsVisible by remember { mutableStateOf(true) }
     val density = androidx.compose.ui.platform.LocalDensity.current
     var footerHeightPx by remember { mutableFloatStateOf(0f) }
-    val flowManager = remember { FlowAutomationManager.instance }
     // The bottom bar is fixed like the top bar: the page area always ends right above it, so it never covers the page
     val navBarBottomPx = WindowInsets.navigationBars.getBottom(density)
     val footerOverlapDp = with(density) { (footerHeightPx - navBarBottomPx).coerceAtLeast(0f).toDp() }
@@ -719,14 +720,9 @@ fun BrowserScreen(
             tabs.forEach { tab ->
                 key(tab.id) {
                     val isActive = tab.id == activeTabId
-                    val isFlowTab = FlowAutomationManager.isFlowUrl(tab.url)
                     val tabOnScreen = isActive && isVisible && !isHomePage
                     SideEffect {
                         tab.isOnScreen = tabOnScreen
-                        if (isFlowTab) {
-                            tab.aiLocked = flowManager.tabLocked
-                            tab.aiBusy = flowManager.isBusy
-                        }
                     }
                     // A temporary unlock ends as soon as the user leaves this tab or the browser screen
                     LaunchedEffect(tabOnScreen) {
@@ -790,9 +786,9 @@ fun BrowserScreen(
                             modifier = Modifier.fillMaxSize()
                         )
 
-                        if (isFlowTab && (flowManager.isBusy || (flowManager.tabLocked && !tab.userUnlocked))) {
-                            FlowAiLockOverlay(
-                                busy = flowManager.isBusy,
+                        if (tab.blocksUserInput) {
+                            BrowserAiLockOverlay(
+                                busy = tab.aiBusy,
                                 onUnlock = { tab.userUnlocked = true }
                             )
                         }
@@ -875,12 +871,9 @@ fun BrowserScreen(
             }
         }
     }
+
 }
 
-/**
- * Search and Typed History Overlay (Popup when clicking/focusing search bar).
- * Displays search query suggestions, visited/entered URLs, and instant completion.
- */
 @Composable
 private fun SearchHistoryOverlay(
     currentInput: String,
@@ -1960,7 +1953,7 @@ fun BrowserDiagnosticOverlay(
  * it offers a temporary unlock.
  */
 @Composable
-private fun FlowAiLockOverlay(busy: Boolean, onUnlock: () -> Unit) {
+private fun BrowserAiLockOverlay(busy: Boolean, onUnlock: () -> Unit) {
     val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
     androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -1998,7 +1991,7 @@ private fun FlowAiLockOverlay(busy: Boolean, onUnlock: () -> Unit) {
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(
-                    text = if (busy) "AI is working in Flow…" else "Controlled by AI",
+                    text = if (busy) "AI is working…" else "Controlled by AI",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White

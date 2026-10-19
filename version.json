@@ -1,9 +1,9 @@
 {
-  "version_code": 111,
-  "version_name": "1.0.11",
+  "version_code": 112,
+  "version_name": "1.0.12",
   "min_supported_version_code": 1,
   "changelog": [
-    "Improve google flow more faster for batch"
+    "Added support for browser extensions(Not chrome extensions), it has it own apis for mcp to create by user"
     
   ],
   "is_critical": false

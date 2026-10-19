@@ -258,3 +258,21 @@ tasks.named("preBuild") {
 
 
 
+
+// Bundle built-in extensions. The app-owned runtime lives in src/main/assets/browser-runtime.
+val bundleBrowserExtensions by tasks.registering(Sync::class) {
+    from(rootProject.file("extensions")) {
+        exclude("**/test/**", "**/node_modules/**", "**/.storage/**", "**/.antigem-state/**")
+    }
+    into(layout.buildDirectory.dir("generated/browserExtensionAssets/browser-extensions"))
+}
+android.sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/browserExtensionAssets").get().asFile)
+tasks.named("preBuild").configure { dependsOn(bundleBrowserExtensions) }
+
+// Documentation is served by the developer MCP; models do not need the app source tree.
+val bundleExtensionDocs by tasks.registering(Sync::class) {
+    from(rootProject.file("extension_docs"))
+    into(layout.buildDirectory.dir("generated/extensionDocAssets/extension-docs"))
+}
+android.sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/extensionDocAssets").get().asFile)
+tasks.named("preBuild").configure { dependsOn(bundleExtensionDocs) }

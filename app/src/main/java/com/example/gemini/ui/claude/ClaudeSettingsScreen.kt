@@ -527,6 +527,11 @@ private fun McpPage(deps: ClaudeSettingsDeps) {
         runCatching { android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID) }.getOrNull().orEmpty()
     }
     val presets = listOf(
+        "WebView Extension Developer" to ClaudeMcpAddRequest(
+            name = "webview_extension_developer_mcp", transport = "http",
+            url = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/extension_developer",
+            headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
+        ),
         "Browser Automation" to ClaudeMcpAddRequest(
             name = "browser_mcp",
             transport = "http",
@@ -539,15 +544,20 @@ private fun McpPage(deps: ClaudeSettingsDeps) {
             url = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/terminal",
             headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
         ),
-        "Google Flow" to ClaudeMcpAddRequest(
-            name = "google_flow_mcp",
-            transport = "http",
-            url = "http://127.0.0.1:${com.example.gemini.data.remote.AndroidLocalBridgeServer.DEFAULT_PORT}/google_flow",
-            headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
-        )
+        "Stitch" to ClaudeMcpAddRequest(name = "stitch", transport = "http", url = "https://stitch.googleapis.com/mcp", headers = mapOf("X-Goog-Api-Key" to ""))
     )
+    var chooseWebViewExtension by remember { mutableStateOf(false) }
+    val extensionManager = remember { com.example.gemini.ui.browser.BrowserExtensionManager.instance }
+    if (chooseWebViewExtension) com.example.gemini.ui.settings.WebViewExtensionMcpPicker(onDismiss = { chooseWebViewExtension = false }) { extension ->
+        addDraft = ClaudeMcpAddRequest(
+            name = extensionManager.mcpServerName(extension.id), transport = "http",
+            url = extensionManager.mcpUrl(extension.id), headers = if (deviceId.isNotBlank()) mapOf("X-Device-Id" to deviceId) else emptyMap()
+        )
+        chooseWebViewExtension = false
+    }
     Text("Quick presets", fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(onClick = { chooseWebViewExtension = true }) { Text("+ WebView Extension MCP") }
         presets.forEach { (label, req) ->
             val added = servers.any { it.name == req.name }
             Surface(
