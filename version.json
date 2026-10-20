@@ -1,10 +1,9 @@
 {
-  "version_code": 112,
-  "version_name": "1.0.12",
+  "version_code": 113,
+  "version_name": "1.0.13",
   "min_supported_version_code": 1,
   "changelog": [
-    "Added support for browser extensions(Not chrome extensions), it has it own apis for mcp to create by user"
-    
+ "Fix lag in scroll for videos"    
   ],
   "is_critical": false
 }

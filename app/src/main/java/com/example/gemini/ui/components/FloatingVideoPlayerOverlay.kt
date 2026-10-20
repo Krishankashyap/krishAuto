@@ -45,6 +45,13 @@ fun FloatingVideoPlayerOverlay(
 ) {
     val playback by YouTubeMediaSessionManager.playbackState.collectAsState()
     val activeState = playback ?: return
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val thumbnailRequest = remember(context, activeState.thumbnailUrl) {
+        coil.request.ImageRequest.Builder(context)
+            .data(activeState.thumbnailUrl)
+            .diskCachePolicy(coil.request.CachePolicy.DISABLED)
+            .build()
+    }
 
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -98,7 +105,7 @@ fun FloatingVideoPlayerOverlay(
                     ) {
                         if (!activeState.thumbnailUrl.isNullOrBlank()) {
                             AsyncImage(
-                                model = activeState.thumbnailUrl,
+                                model = thumbnailRequest,
                                 contentDescription = activeState.title,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -162,7 +169,7 @@ fun FloatingVideoPlayerOverlay(
                             ) {
                                 if (!activeState.thumbnailUrl.isNullOrBlank()) {
                                     AsyncImage(
-                                        model = activeState.thumbnailUrl,
+                                        model = thumbnailRequest,
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier.fillMaxSize()

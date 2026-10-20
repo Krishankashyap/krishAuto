@@ -25,7 +25,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
-import coil.ImageLoader
+import coil.imageLoader
 import coil.request.ImageRequest
 import com.example.gemini.MainActivity
 import com.example.gemini.ui.components.MarkdownBlock
@@ -670,9 +670,10 @@ object YouTubeMediaSessionManager {
         if (url.isNullOrBlank()) return
         scope.launch(Dispatchers.IO) {
             try {
-                val loader = ImageLoader(context)
+                val loader = context.imageLoader
                 val request = ImageRequest.Builder(context)
                     .data(url)
+                    .diskCachePolicy(coil.request.CachePolicy.DISABLED)
                     .allowHardware(false)
                     .build()
                 val result = loader.execute(request)

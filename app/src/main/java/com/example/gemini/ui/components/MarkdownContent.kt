@@ -59,9 +59,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import android.util.Log
@@ -97,6 +99,8 @@ import com.example.gemini.data.remote.HubMediaResolver
 import com.example.gemini.theme.ClaudeTerracotta
 import com.example.gemini.theme.GeminiBlue
 import com.example.gemini.theme.QuotaGreen
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.delay
 import java.util.regex.Pattern
 
@@ -1644,6 +1648,13 @@ fun MarkdownVideoView(
         }
     }
     var aspectRatio by remember(video.url) { mutableFloatStateOf(16f / 9f) }
+    var playbackRequested by remember(video.url) { mutableStateOf(false) }
+    var thumbnail by remember(video.url) {
+        mutableStateOf(VideoThumbnailCache.peek(video.url))
+    }
+    LaunchedEffect(video.url) {
+        thumbnail = VideoThumbnailCache.load(context.applicationContext, video.url, videoUri)
+    }
     var isPrepared by remember(video.url) { mutableStateOf(false) }
     var isPlaying by remember(video.url) { mutableStateOf(false) }
     var hasError by remember(video.url) { mutableStateOf(false) }
@@ -1651,40 +1662,45 @@ fun MarkdownVideoView(
     var positionMs by remember(video.url) { mutableIntStateOf(0) }
     var isSeeking by remember(video.url) { mutableStateOf(false) }
 
-    val player = remember(video.url) { android.media.MediaPlayer() }
+    val player = remember(video.url, playbackRequested) {
+        if (playbackRequested) android.media.MediaPlayer() else null
+    }
 
-    DisposableEffect(player) {
-        try {
-            player.setDataSource(context, videoUri)
-            player.setOnPreparedListener { mp ->
-                if (mp.videoWidth > 0 && mp.videoHeight > 0) {
-                    aspectRatio = mp.videoWidth.toFloat() / mp.videoHeight
+    if (player != null) {
+        DisposableEffect(player) {
+            try {
+                player.setDataSource(context, videoUri)
+                player.setOnPreparedListener { mp ->
+                    if (mp.videoWidth > 0 && mp.videoHeight > 0) {
+                        aspectRatio = mp.videoWidth.toFloat() / mp.videoHeight
+                    }
+                    durationMs = mp.duration.coerceAtLeast(0)
+                    isPrepared = true
+                    mp.start()
+                    isPlaying = true
                 }
-                durationMs = mp.duration.coerceAtLeast(0)
-                isPrepared = true
-                mp.seekTo(1)
-            }
-            player.setOnCompletionListener {
-                isPlaying = false
-                positionMs = durationMs
-            }
-            player.setOnErrorListener { _, _, _ ->
+                player.setOnCompletionListener {
+                    isPlaying = false
+                    positionMs = durationMs
+                }
+                player.setOnErrorListener { _, _, _ ->
+                    hasError = true
+                    isPlaying = false
+                    true
+                }
+                player.prepareAsync()
+            } catch (e: Exception) {
+                Log.e("MarkdownVideoView", "Failed to open video ${video.url}: ${e.message}")
                 hasError = true
-                isPlaying = false
-                true
             }
-            player.prepareAsync()
-        } catch (e: Exception) {
-            Log.e("MarkdownVideoView", "Failed to open video ${video.url}: ${e.message}")
-            hasError = true
-        }
-        onDispose {
-            try { player.release() } catch (_: Exception) {}
+            onDispose {
+                try { player.release() } catch (_: Exception) {}
+            }
         }
     }
 
-    LaunchedEffect(isPlaying) {
-        while (isPlaying) {
+    LaunchedEffect(player, isPlaying) {
+        while (isPlaying && player != null) {
             if (!isSeeking) {
                 positionMs = try { player.currentPosition } catch (_: Exception) { positionMs }
             }
@@ -1693,7 +1709,9 @@ fun MarkdownVideoView(
     }
 
     val togglePlayback: () -> Unit = {
-        try {
+        if (player == null) {
+            playbackRequested = true
+        } else if (isPrepared) try {
             if (isPlaying) {
                 player.pause()
                 isPlaying = false
@@ -1718,7 +1736,7 @@ fun MarkdownVideoView(
                 .aspectRatio(aspectRatio)
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color.Black)
-                .clickable(enabled = isPrepared && !hasError) { togglePlayback() }
+                .clickable(enabled = !hasError && (!playbackRequested || isPrepared)) { togglePlayback() }
         ) {
             if (hasError) {
                 Column(
@@ -1739,39 +1757,50 @@ fun MarkdownVideoView(
                     )
                 }
             } else {
-                AndroidView(
-                    factory = { ctx ->
-                        android.view.TextureView(ctx).apply {
-                            surfaceTextureListener = object : android.view.TextureView.SurfaceTextureListener {
-                                private var surface: android.view.Surface? = null
+                if (player == null) {
+                    thumbnail?.let { bitmap ->
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = video.alt.ifBlank { "Video preview" },
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                } else {
+                    AndroidView(
+                        factory = { ctx ->
+                            android.view.TextureView(ctx).apply {
+                                surfaceTextureListener = object : android.view.TextureView.SurfaceTextureListener {
+                                    private var surface: android.view.Surface? = null
 
-                                override fun onSurfaceTextureAvailable(texture: android.graphics.SurfaceTexture, width: Int, height: Int) {
-                                    surface = android.view.Surface(texture)
-                                    try {
-                                        player.setSurface(surface)
-                                        if (isPrepared && !isPlaying) player.seekTo(positionMs.coerceAtLeast(1))
-                                    } catch (_: Exception) {}
+                                    override fun onSurfaceTextureAvailable(texture: android.graphics.SurfaceTexture, width: Int, height: Int) {
+                                        surface = android.view.Surface(texture)
+                                        try {
+                                            player.setSurface(surface)
+                                            if (isPrepared && !isPlaying) player.seekTo(positionMs.coerceAtLeast(1))
+                                        } catch (_: Exception) {}
+                                    }
+
+                                    override fun onSurfaceTextureSizeChanged(texture: android.graphics.SurfaceTexture, width: Int, height: Int) {}
+
+                                    override fun onSurfaceTextureDestroyed(texture: android.graphics.SurfaceTexture): Boolean {
+                                        try {
+                                            if (player.isPlaying) player.pause()
+                                            player.setSurface(null)
+                                        } catch (_: Exception) {}
+                                        isPlaying = false
+                                        surface?.release()
+                                        surface = null
+                                        return true
+                                    }
+
+                                    override fun onSurfaceTextureUpdated(texture: android.graphics.SurfaceTexture) {}
                                 }
-
-                                override fun onSurfaceTextureSizeChanged(texture: android.graphics.SurfaceTexture, width: Int, height: Int) {}
-
-                                override fun onSurfaceTextureDestroyed(texture: android.graphics.SurfaceTexture): Boolean {
-                                    try {
-                                        if (player.isPlaying) player.pause()
-                                        player.setSurface(null)
-                                    } catch (_: Exception) {}
-                                    isPlaying = false
-                                    surface?.release()
-                                    surface = null
-                                    return true
-                                }
-
-                                override fun onSurfaceTextureUpdated(texture: android.graphics.SurfaceTexture) {}
                             }
-                        }
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
 
                 if (!isPlaying) {
                     Surface(
@@ -1780,7 +1809,7 @@ fun MarkdownVideoView(
                         modifier = Modifier.size(52.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            if (isPrepared) {
+                            if (!playbackRequested || isPrepared) {
                                 Icon(
                                     imageVector = Icons.Filled.PlayArrow,
                                     contentDescription = "Play",
@@ -1821,7 +1850,7 @@ fun MarkdownVideoView(
                         positionMs = it.toInt()
                     },
                     onValueChangeFinished = {
-                        try { player.seekTo(positionMs) } catch (_: Exception) {}
+                        try { player?.seekTo(positionMs) } catch (_: Exception) {}
                         isSeeking = false
                     },
                     valueRange = 0f..durationMs.toFloat(),
@@ -1897,8 +1926,20 @@ fun YouTubeVideoView(
         video.customThumbnailUrl?.takeIf { it.isNotBlank() }
             ?: "https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg"
     }
-    val activePlayback by com.example.gemini.data.media.YouTubeMediaSessionManager.playbackState.collectAsState()
-    val isPlaying = activePlayback?.videoId == video.videoId
+    val thumbnailRequest = remember(context, thumbnailUrl) {
+        ImageRequest.Builder(context)
+            .data(thumbnailUrl)
+            .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+            .diskCachePolicy(coil.request.CachePolicy.DISABLED)
+            .crossfade(false)
+            .build()
+    }
+    val activeVideoId by remember {
+        com.example.gemini.data.media.YouTubeMediaSessionManager.playbackState
+            .map { it?.videoId }
+            .distinctUntilChanged()
+    }.collectAsState(initial = null)
+    val isPlaying = activeVideoId == video.videoId
     val onStartPlay: () -> Unit = {
         com.example.gemini.data.media.YouTubeMediaSessionManager.getOrCreatePlayer(
             context = context,
@@ -2059,10 +2100,7 @@ fun YouTubeVideoView(
                 if (!isPlaying) {
                     // Thumbnail Preview
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(thumbnailUrl)
-                            .crossfade(true)
-                            .build(),
+                        model = thumbnailRequest,
                         contentDescription = video.title ?: "YouTube Video Thumbnail",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
