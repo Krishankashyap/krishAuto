@@ -150,6 +150,7 @@ dependencies {
   implementation(libs.okhttp.sse)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.androidx.datastore.preferences)
+  implementation("com.telemetrydeck:kotlin-sdk:6.0.1")
 
   // Image Loading (Coil for Markdown Images and IDE Asset Viewer)
   implementation("io.coil-kt:coil-compose:2.7.0")

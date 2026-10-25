@@ -22,6 +22,10 @@
     @kotlinx.serialization.Serializable <fields>;
 }
 
+# TelemetryDeck Kotlin SDK (release minify)
+-keep class com.telemetrydeck.sdk.** { *; }
+-dontwarn com.telemetrydeck.sdk.**
+
 # OkHttp & Okio
 -dontwarn okhttp3.**
 -dontwarn okio.**

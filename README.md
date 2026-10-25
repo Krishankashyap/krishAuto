@@ -222,6 +222,18 @@ Contributions, feature suggestions, and pull requests are welcome!
 
 ---
 
+## 📊 Analytics
+
+AntiGem uses [TelemetryDeck](https://telemetrydeck.com) for a basic check of how many people use the app overall.
+
+It records that the app was opened, an anonymous install count, session counts, and general device details such as the phone model, Android version, and app version. It does not collect chat messages, prompts, code, files, terminal output, account emails, or API keys.
+
+A debug build is marked as test data and stays separate from the real user count.
+
+---
+
 ## 📄 License
 
-AntiGem is open-source software licensed under the **Apache License 2.0**.
+Copyright (C) 2026 Santosh Kurmi
+
+[GNU General Public License v3.0](LICENSE) or any later version.
