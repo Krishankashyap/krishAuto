@@ -9,8 +9,9 @@ class AntiGemApplication : Application() {
         TelemetryDeck.start(
             this,
             TelemetryDeck.Builder()
-                .appID("2D4431F8-9AF6-42CC-9329-FB06B3ECD961")
+                .appID("0519BE48-B8FA-4B86-A920-0792E3123734")
                 .namespace("com.santoshkurmi")
+                .defaultUser(SimpleTelemetryId.getUniqueUserId(this))
                 .testMode(BuildConfig.DEBUG)
                 .showDebugLogs(BuildConfig.DEBUG)
                 .sendNewSessionBeganSignal(true)
