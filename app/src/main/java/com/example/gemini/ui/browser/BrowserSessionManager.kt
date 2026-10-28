@@ -225,13 +225,49 @@ class BrowserSessionManager private constructor() {
 
         private const val MAX_LOGS_PER_QUERY = 150
         private const val DEFAULT_TIMEOUT_MS = 15000L
-        const val DESKTOP_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+
+        /**
+         * Stand-in for WebView's "Version" token. Google rejects the literal "Version/4.0".
+         * A short random token keeps the "/4.0" shape (Rvyc/4.0) and stays stable for this process.
+         */
+        private val webViewProductToken: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".let { alphabet ->
+            buildString(4) {
+                repeat(4) { append(alphabet[kotlin.random.Random.nextInt(alphabet.length)]) }
+            }
+        }
+
+        fun chromeFullVersion(userAgent: String): String {
+            Regex("""Chrome/(\d+\.\d+\.\d+\.\d+)""").find(userAgent)?.groupValues?.get(1)?.let { return it }
+            Regex("""Chrome/(\d+)""").find(userAgent)?.groupValues?.get(1)?.let { return "$it.0.0.0" }
+            return "0.0.0.0"
+        }
+
+        /**
+         * Mobile WebView UA with the two embedded-browser markers removed:
+         * "; wv" is dropped, and "Version/4.0" becomes "<token>/4.0".
+         * The device string and Chrome version stay exactly what this WebView reports.
+         */
+        fun mobileUserAgent(context: Context): String {
+            return WebSettings.getDefaultUserAgent(context)
+                .replace("; wv", "")
+                .replace("Version/", "$webViewProductToken/")
+        }
+
+        /**
+         * Desktop UA in the Linux form, using the same Chrome version as the installed WebView.
+         */
+        fun desktopUserAgent(context: Context): String {
+            val version = chromeFullVersion(WebSettings.getDefaultUserAgent(context))
+            return "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$version Safari/537.36"
+        }
 
         /**
          * Injects script to spoof Desktop screen width/height, platform, client hints, and desktop viewport meta tag.
          * This prevents responsive sites (like YouTube, Google, Facebook, Twitter, Reddit) from falling back to mobile.
          */
         fun injectDesktopSpoofing(view: WebView?) {
+            val fullVersion = chromeFullVersion(view?.settings?.userAgentString ?: "")
+            val majorVersion = fullVersion.substringBefore('.')
             val js = """
             (function() {
                 try {
@@ -255,7 +291,7 @@ class BrowserSessionManager private constructor() {
 
                     // 2. Override navigator platform and touch points
                     try {
-                        Object.defineProperty(navigator, 'platform', { get: function() { return 'Win32'; }, configurable: true });
+                        Object.defineProperty(navigator, 'platform', { get: function() { return 'Linux x86_64'; }, configurable: true });
                     } catch(e) {}
                     try {
                         Object.defineProperty(navigator, 'maxTouchPoints', { get: function() { return 1; }, configurable: true });
@@ -268,10 +304,10 @@ class BrowserSessionManager private constructor() {
                                 get: function() {
                                     return {
                                         mobile: false,
-                                        platform: 'Windows',
+                                        platform: 'Linux',
                                         brands: [
-                                            { brand: 'Chromium', version: '128' },
-                                            { brand: 'Google Chrome', version: '128' },
+                                            { brand: 'Chromium', version: '$majorVersion' },
+                                            { brand: 'Google Chrome', version: '$majorVersion' },
                                             { brand: 'Not;A=Brand', version: '24' }
                                         ],
                                         getHighEntropyValues: function() {
@@ -280,8 +316,14 @@ class BrowserSessionManager private constructor() {
                                                 bitness: '64',
                                                 mobile: false,
                                                 model: '',
-                                                platform: 'Windows',
-                                                platformVersion: '15.0.0'
+                                                platform: 'Linux',
+                                                platformVersion: '6.8.0',
+                                                uaFullVersion: '$fullVersion',
+                                                fullVersionList: [
+                                                    { brand: 'Chromium', version: '$fullVersion' },
+                                                    { brand: 'Google Chrome', version: '$fullVersion' },
+                                                    { brand: 'Not;A=Brand', version: '24.0.0.0' }
+                                                ]
                                             });
                                         }
                                     };
@@ -750,18 +792,18 @@ class BrowserSessionManager private constructor() {
             } ?: return@post
 
             if (tab.defaultUserAgent == null) {
-                tab.defaultUserAgent = wv.settings.userAgentString
+                tab.defaultUserAgent = mobileUserAgent(wv.context)
             }
 
             if (enable) {
-                wv.settings.userAgentString = DESKTOP_USER_AGENT
+                wv.settings.userAgentString = desktopUserAgent(wv.context)
                 wv.settings.useWideViewPort = true
                 wv.settings.loadWithOverviewMode = true
                 wv.settings.setSupportZoom(true)
                 wv.settings.builtInZoomControls = true
                 wv.settings.displayZoomControls = false
             } else {
-                wv.settings.userAgentString = tab.defaultUserAgent ?: WebSettings.getDefaultUserAgent(wv.context)
+                wv.settings.userAgentString = tab.defaultUserAgent ?: mobileUserAgent(wv.context)
                 wv.settings.useWideViewPort = true
                 wv.settings.loadWithOverviewMode = true
             }
@@ -862,8 +904,10 @@ class BrowserSessionManager private constructor() {
                 displayZoomControls = false
                 mediaPlaybackRequiresUserGesture = false
 
-                if (tab.isDesktopMode) {
-                    userAgentString = DESKTOP_USER_AGENT
+                userAgentString = if (tab.isDesktopMode) {
+                    desktopUserAgent(context)
+                } else {
+                    mobileUserAgent(context)
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
