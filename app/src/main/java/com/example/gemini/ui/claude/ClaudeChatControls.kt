@@ -103,7 +103,9 @@ fun ClaudeControlsStrip(
         backend.controlMessages.collect { android.widget.Toast.makeText(androidContext, it, android.widget.Toast.LENGTH_LONG).show() }
     }
 
-    val info = modelInfos.find { it.value == selectedModel } ?: modelInfos.firstOrNull()
+    // a custom provider's model has none of Claude's model options
+    val custom = ClaudeChatBackend.providerOf(selectedModel).isNotEmpty()
+    val info = if (custom) null else modelInfos.find { it.value == selectedModel } ?: modelInfos.firstOrNull()
     var modeMenu by remember { mutableStateOf(false) }
     var effortMenu by remember { mutableStateOf(false) }
     var showContext by remember { mutableStateOf(false) }
@@ -177,14 +179,14 @@ fun ClaudeControlsStrip(
             )
         }
 
-        // plan usage (live)
-        limits["five_hour"]?.let { w ->
+        // plan usage (live), only for Claude's own models
+        limits["five_hour"]?.takeIf { !custom }?.let { w ->
             ControlChip(text = "5h ${(w.utilization * 100).toInt()}%", icon = Icons.Outlined.Bolt, color = usageColor(w.utilization))
         }
     }
 
     if (modeMenu) {
-        val autoSupported = info?.supportsAutoMode != false
+        val autoSupported = !custom && info?.supportsAutoMode != false
         ClaudePermissionModeSheet(
             current = mode,
             modes = ClaudeChatBackend.PERMISSION_MODES.filter { (value, _) -> value != "auto" || autoSupported },
@@ -250,9 +252,14 @@ fun ClaudeModelSheet(
     val modelsError by backend.modelsError.collectAsState()
     val usage by account.usage.collectAsState()
     val liveLimits by backend.rateLimits.collectAsState()
+    val providers by backend.providers.collectAsState()
+    val accountState by account.state.collectAsState()
     val cardColor = claudeCardColor()
 
-    LaunchedEffect(Unit) { account.refreshUsage(force = false) }
+    LaunchedEffect(Unit) {
+        account.refreshUsage(force = false)
+        backend.refreshProviders()
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -263,14 +270,21 @@ fun ClaudeModelSheet(
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 18.dp).padding(bottom = 22.dp).navigationBarsPadding()
         ) {
-            val rows = if (models.isNotEmpty()) models.map { Triple(it.value, it.displayName.ifBlank { it.value }, it.description) }
-            else fallback.map { Triple(it.id, it.displayName, it.description) }
+            // Claude's own models need the Claude login; the providers' models only their key
+            val signedOut = accountState == com.example.gemini.data.agent.claude.ClaudeStatus.SIGNED_OUT
+            val rows = when {
+                signedOut -> emptyList()
+                models.isNotEmpty() -> models.map { Triple(it.value, it.displayName.ifBlank { it.value }, it.description) }
+                else -> fallback.filter { ClaudeChatBackend.providerOf(it.id).isEmpty() }.map { Triple(it.id, it.displayName, it.description) }
+            }
+            val customSections = providers.filter { it.models.isNotEmpty() }
+            val customCount = customSections.sumOf { it.models.size }
 
             AgentSheetHeader(
                 AgentKind.CLAUDE,
                 "Select model",
                 when {
-                    rows.isNotEmpty() -> "${rows.size} models"
+                    rows.size + customCount > 0 -> "${rows.size + customCount} models"
                     refreshing -> "loading models…"
                     else -> "no models loaded"
                 },
@@ -291,7 +305,7 @@ fun ClaudeModelSheet(
                 ?: usage?.rate_limits?.five_hour?.let { (it.utilization ?: 0.0) / 100.0 to it.resets_at }
             val week = liveLimits["seven_day"]?.let { it.utilization to it.resetsAt?.let(::isoUtcSeconds) }
                 ?: usage?.rate_limits?.seven_day?.let { (it.utilization ?: 0.0) / 100.0 to it.resets_at }
-            if (five != null || week != null) {
+            if ((five != null || week != null) && ClaudeChatBackend.providerOf(selected).isEmpty()) {
                 Spacer(Modifier.height(10.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -313,8 +327,50 @@ fun ClaudeModelSheet(
                 }
             }
 
-            SheetSectionLabel("Model")
-            if (rows.isEmpty()) {
+            @Composable
+            fun ModelRow(value: String, name: String, desc: String) {
+                val isSel = value == selected
+                Surface(
+                    onClick = {
+                        backend.selectModel(value)
+                        onDismiss()
+                    },
+                    shape = RoundedCornerShape(14.dp),
+                    color = cardColor,
+                    border = BorderStroke(if (isSel) 1.5.dp else 1.dp, if (isSel) ClaudeAccent.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(name, fontWeight = if (isSel) FontWeight.Bold else FontWeight.SemiBold, fontSize = 14.sp)
+                            if (desc.isNotBlank()) {
+                                Text(desc, fontSize = 12.sp, lineHeight = 16.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            }
+                        }
+                        if (isSel) {
+                            Spacer(Modifier.width(8.dp))
+                            Row(
+                                Modifier.clip(RoundedCornerShape(6.dp)).background(ClaudeAccent.copy(alpha = 0.15f)).padding(horizontal = 7.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Check, null, tint = ClaudeAccent, modifier = Modifier.size(12.dp))
+                                Spacer(Modifier.width(3.dp))
+                                Text("Active", fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = ClaudeAccent)
+                            }
+                        }
+                    }
+                }
+            }
+
+            SheetSectionLabel(if (customSections.isEmpty()) "Model" else "Claude", trailing = if (customSections.isEmpty()) null else "your Claude plan")
+            if (signedOut) {
+                Text(
+                    "Sign in to Claude Code (Settings → Claude Code → Account) to use Claude's models.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            } else if (rows.isEmpty()) {
                 Surface(shape = RoundedCornerShape(14.dp), color = cardColor, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(18.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                         if (refreshing) {
@@ -336,34 +392,15 @@ fun ClaudeModelSheet(
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                rows.forEach { (value, name, desc) ->
-                    val isSel = value == selected
-                    Surface(
-                        onClick = { backend.selectModel(value) },
-                        shape = RoundedCornerShape(14.dp),
-                        color = cardColor,
-                        border = BorderStroke(if (isSel) 1.5.dp else 1.dp, if (isSel) ClaudeAccent.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text(name, fontWeight = if (isSel) FontWeight.Bold else FontWeight.SemiBold, fontSize = 14.sp)
-                                if (desc.isNotBlank()) {
-                                    Text(desc, fontSize = 12.sp, lineHeight = 16.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                                }
-                            }
-                            if (isSel) {
-                                Spacer(Modifier.width(8.dp))
-                                Row(
-                                    Modifier.clip(RoundedCornerShape(6.dp)).background(ClaudeAccent.copy(alpha = 0.15f)).padding(horizontal = 7.dp, vertical = 3.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(Icons.Default.Check, null, tint = ClaudeAccent, modifier = Modifier.size(12.dp))
-                                    Spacer(Modifier.width(3.dp))
-                                    Text("Active", fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = ClaudeAccent)
-                                }
-                            }
-                        }
+                rows.forEach { (value, name, desc) -> ModelRow(value, name, desc) }
+            }
+
+            // one section per custom provider (Settings → Claude Code → Custom providers)
+            customSections.forEach { p ->
+                SheetSectionLabel(p.name, trailing = "custom provider")
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    p.models.forEach { m ->
+                        ModelRow("@${p.id}/${m.id}", m.name?.takeIf { it.isNotBlank() } ?: m.id, if (m.name.isNullOrBlank()) "" else m.id)
                     }
                 }
             }
@@ -453,6 +490,23 @@ fun ClaudeUsageDialog(account: ClaudeAccountManager, backend: ClaudeChatBackend,
     val status by account.status.collectAsState()
     val live by backend.rateLimits.collectAsState()
     val cost by backend.sessionCost.collectAsState()
+    val selected by backend.selectedModelId.collectAsState()
+    // usage and cost are shown for Claude's own models only (a provider's cost from the CLI is a guess)
+    if (ClaudeChatBackend.providerOf(selected).isNotEmpty()) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Usage", fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "This chat runs on ${backend.modelLabel(selected)}, a custom provider. Plan usage and cost are only shown for " +
+                        "Claude's own models; check the provider's dashboard for this chat's usage.",
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } }
+        )
+        return
+    }
     var loading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         account.refreshUsage(force = true)
@@ -510,5 +564,57 @@ fun ClaudeUsageDialog(account: ClaudeAccountManager, backend: ClaudeChatBackend,
         },
         confirmButton = { TextButton(onClick = { account.refreshUsage(force = true) }) { Text("Refresh") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Close") } }
+    )
+}
+
+/**
+ * Asked before a chat with messages moves to another provider: the process restarts and the whole conversation is
+ * sent again without cache. A new chat is the recommended way; switching anyway unlocks after a short delay.
+ */
+@Composable
+fun ClaudeProviderSwitchDialog(backend: ClaudeChatBackend) {
+    val sw by backend.pendingProviderSwitch.collectAsState()
+    val pending = sw ?: return
+    val running by backend.isCurrentChatActivelyRunning.collectAsState()
+    var wait by remember(pending) { mutableStateOf(3) }
+    LaunchedEffect(pending) {
+        while (wait > 0) {
+            delay(1_000)
+            wait--
+        }
+    }
+    val muted = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+    AlertDialog(
+        onDismissRequest = { backend.cancelProviderSwitch() },
+        title = { Text("⚠️ Switch provider in this chat?", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("This chat runs on ${pending.fromLabel}. Moving it to ${pending.toLabel} is not a good idea:", fontSize = 13.5.sp)
+                Text("• Claude Code is stopped and started again for this chat.", fontSize = 13.sp, color = muted)
+                Text(
+                    "• The whole conversation" + (pending.resendTokens?.let { " (about ${compactTokens(it)} tokens)" } ?: "") +
+                        " is sent to the new provider again, without cache, so the next reply costs far more than usual.",
+                    fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = QuotaRed
+                )
+                Text("• Thinking, effort and Auto mode may not carry over, and the new provider may reject or misread earlier replies.", fontSize = 13.sp, color = muted)
+                Text("Starting a new chat is usually the better choice.", fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        confirmButton = {
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Button(
+                    onClick = { backend.startNewChatWithPendingModel() },
+                    colors = ButtonDefaults.buttonColors(containerColor = ClaudeAccent)
+                ) { Text("Start a new chat with it") }
+                TextButton(onClick = { backend.cancelProviderSwitch() }) { Text("Cancel") }
+                TextButton(onClick = { backend.confirmProviderSwitch() }, enabled = wait == 0) {
+                    Text(
+                        (if (running) "Switch after this reply" else "Switch anyway") + if (wait > 0) " ($wait)" else "",
+                        color = if (wait == 0) QuotaRed else QuotaRed.copy(alpha = 0.4f),
+                        fontSize = 12.5.sp
+                    )
+                }
+            }
+        }
     )
 }

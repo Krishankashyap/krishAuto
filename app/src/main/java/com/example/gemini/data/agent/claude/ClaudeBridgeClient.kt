@@ -102,6 +102,28 @@ class ClaudeBridgeClient(
     suspend fun saveSettings(settings: kotlinx.serialization.json.JsonObject): Result<BridgeSimpleResponse> =
         call(Request.Builder().url(url("/settings")).put(ClaudeJson.encodeToString(ClaudeSettingsPut(settings)).toRequestBody(jsonType)).build())
 
+    // ---- custom providers
+    suspend fun providers(): Result<ClaudeProvidersResponse> = get("/providers")
+
+    /** Adds [provider] (blank id) or updates it. */
+    suspend fun saveProvider(provider: ClaudeProvider): Result<ClaudeProviderResponse> {
+        val body = ClaudeJson.encodeToString(provider).toRequestBody(jsonType)
+        return call(
+            if (provider.id.isBlank()) Request.Builder().url(url("/providers")).post(body).build()
+            else Request.Builder().url(url("/providers/${provider.id}")).put(body).build()
+        )
+    }
+
+    suspend fun deleteProvider(id: String): Result<BridgeSimpleResponse> =
+        call(Request.Builder().url(url("/providers/$id")).delete().build())
+
+    /** The provider's model list; [freeOnly] (OpenRouter) keeps free models that can call tools. */
+    suspend fun fetchProviderModels(id: String, freeOnly: Boolean): Result<ClaudeFetchModelsResponse> =
+        call(Request.Builder().url(url("/providers/$id/fetch-models")).post(ClaudeJson.encodeToString(ClaudeFetchModelsRequest(freeOnly)).toRequestBody(jsonType)).build(), slowClient)
+
+    /** Moves the endpoint configured in settings.json into a provider (settings.json then uses the Claude login). */
+    suspend fun importSettingsProvider(): Result<ClaudeProviderResponse> = post("/providers/import-settings")
+
     private fun memoryQuery(scope: String, cwd: String?) =
         "/memory?scope=$scope" + (cwd?.let { "&cwd=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: "")
 

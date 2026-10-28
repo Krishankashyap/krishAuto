@@ -310,6 +310,8 @@ data class ClaudeHistoryResponse(
     val success: Boolean = false,
     val entries: List<JsonObject> = emptyList(),
     val state: BridgeSessionState = BridgeSessionState(),
+    /** The custom model ("@provider/model") the chat last ran; blank for an official Claude model. */
+    val model_ref: String = "",
     val error: String? = null
 )
 
@@ -716,3 +718,41 @@ data class ClaudeSandboxInfo(
     val enabled: Boolean = false,
     val reason: String? = null
 )
+
+// ---------------------------------------------------------------- custom providers (/api/claude/providers)
+
+@Serializable
+data class ClaudeProviderModel(val id: String, val name: String? = null)
+
+/** An Anthropic-compatible API (OpenRouter, Kimi, …). The bridge never sends the key back, only [api_key_hint]. */
+@Serializable
+data class ClaudeProvider(
+    val id: String = "",
+    val name: String = "",
+    val base_url: String = "",
+    /** Only sent when saving; blank keeps the saved key. */
+    val api_key: String? = null,
+    val api_key_hint: String? = null,
+    val models_url: String = "",
+    val small_model: String = "",
+    val models: List<ClaudeProviderModel> = emptyList(),
+    val openrouter: Boolean = false
+)
+
+@Serializable
+data class ClaudeProvidersResponse(
+    val success: Boolean = false,
+    val providers: List<ClaudeProvider> = emptyList(),
+    /** settings.json routes every chat to this endpoint (can be moved into a provider). */
+    val settings_endpoint: String? = null,
+    val error: String? = null
+)
+
+@Serializable
+data class ClaudeProviderResponse(val success: Boolean = false, val provider: ClaudeProvider? = null, val error: String? = null)
+
+@Serializable
+data class ClaudeFetchModelsRequest(val free_only: Boolean)
+
+@Serializable
+data class ClaudeFetchModelsResponse(val success: Boolean = false, val models: List<ClaudeProviderModel> = emptyList(), val error: String? = null)

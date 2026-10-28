@@ -127,6 +127,23 @@ class ClaudeChatBackend(
     private val _isRefreshingModels = MutableStateFlow(false)
     val isRefreshingModels: StateFlow<Boolean> = _isRefreshingModels.asStateFlow()
 
+    // ---- custom providers (Anthropic-compatible APIs; their models are "@provider/model")
+    private val _providers = MutableStateFlow<List<ClaudeProvider>>(emptyList())
+    val providers: StateFlow<List<ClaudeProvider>> = _providers.asStateFlow()
+
+    private val _settingsEndpoint = MutableStateFlow<String?>(null)
+    /** settings.json sends every chat to this endpoint (offered for moving into a provider). */
+    val settingsEndpoint: StateFlow<String?> = _settingsEndpoint.asStateFlow()
+
+    // the CLI's own models; [availableModels] adds the providers' models after them
+    private var officialModels: List<AiModel> = emptyList()
+
+    /** A model of another provider was chosen in a chat that already has messages: waits for the user's answer. */
+    data class ProviderSwitch(val modelId: String, val fromLabel: String, val toLabel: String, val resendTokens: Long?)
+
+    private val _pendingProviderSwitch = MutableStateFlow<ProviderSwitch?>(null)
+    val pendingProviderSwitch: StateFlow<ProviderSwitch?> = _pendingProviderSwitch.asStateFlow()
+
     // ---- live indicators
     private val _cacheInfo = MutableStateFlow<ClaudeTranscript.CacheInfo?>(null)
     val cacheInfo: StateFlow<ClaudeTranscript.CacheInfo?> = _cacheInfo.asStateFlow()
@@ -193,6 +210,7 @@ class ClaudeChatBackend(
         prefs.cachedInfo()?.let { applyInfo(it) }
         loopJob = backendScope.launch {
             refreshInfo(force = false)
+            refreshProviders()
             loadChatDefaults()
             while (isActive) {
                 refreshSessions()
@@ -440,17 +458,82 @@ class ClaudeChatBackend(
 
     fun selectModel(modelId: String) {
         val previous = _selectedModelId.value
+        if (providerOf(modelId) != providerOf(previous)) {
+            // the endpoint is fixed when the process starts: another provider means a new process
+            val conv = store.currentConversation.value
+            if (conv != null && (_messages.value.isNotEmpty() || isOnDisk(conv.id))) {
+                _pendingProviderSwitch.value = ProviderSwitch(
+                    modelId = modelId,
+                    fromLabel = modelLabel(previous),
+                    toLabel = modelLabel(modelId),
+                    resendTokens = _contextUsage.value?.totalTokens?.takeIf { it > 0 } ?: _cacheInfo.value?.recacheTokens?.takeIf { it > 0 }
+                )
+                return
+            }
+            switchProvider(modelId)
+            return
+        }
         controlsTouched = true
         setSelectedModel(modelId)
         // keep the effort valid for the new model
         val levels = _modelInfos.value.find { it.value == modelId }?.supportedEffortLevels.orEmpty()
         if (_effort.value != null && levels.isNotEmpty() && _effort.value !in levels) setEffort(null)
         applyControl(
-            live = ClaudeControlRequestBody(subtype = "set_model", model = modelId),
+            // a provider's process knows its models by their own id
+            live = ClaudeControlRequestBody(subtype = "set_model", model = rawModel(modelId)),
             spawn = BridgeConfigFrame(model = modelId),
             what = "model",
-            revert = { setSelectedModel(previous) }
+            revert = { setSelectedModel(previous) },
+            // the bridge remembers the chat's model for its next start (a reopened chat stays on the provider)
+            configureLive = true
         )
+    }
+
+    /** The user confirmed moving this chat to [ProviderSwitch.modelId]'s provider. */
+    fun confirmProviderSwitch() {
+        val sw = _pendingProviderSwitch.value ?: return
+        _pendingProviderSwitch.value = null
+        switchProvider(sw.modelId)
+    }
+
+    fun cancelProviderSwitch() {
+        _pendingProviderSwitch.value = null
+    }
+
+    /** Opens a new chat (same folder) on the model of the pending switch instead of moving this one. */
+    fun startNewChatWithPendingModel() {
+        val sw = _pendingProviderSwitch.value ?: return
+        _pendingProviderSwitch.value = null
+        val workspace = store.currentConversation.value?.workspaceUri
+        startNewChat()
+        if (!workspace.isNullOrBlank()) store.currentConversation.value?.let { store.currentConversation.value = it.copy(workspaceUri = workspace) }
+        switchProvider(sw.modelId)
+    }
+
+    // a provider switch waiting for the running reply to end
+    @Volatile private var queuedRestart: String? = null
+
+    /**
+     * Moves the chat to [modelId] of another provider: the process is stopped and the next prompt starts a new one
+     * there, resuming the chat from its transcript. A running reply finishes first.
+     */
+    private fun switchProvider(modelId: String) {
+        controlsTouched = true
+        setSelectedModel(modelId)
+        if (providerOf(modelId).isNotEmpty()) _effort.value = null
+        if (_isTurnActive.value) {
+            queuedRestart = modelId
+            _controlMessages.tryEmit("Switches to ${modelLabel(modelId)} after this reply")
+            return
+        }
+        restartOn(modelId)
+    }
+
+    private fun restartOn(modelId: String) {
+        backendScope.launch(worker) {
+            if (socket == null && !processLive) return@launch // not connected: the next connect sends the new model
+            send(ClaudeJson.encodeToString(BridgeConfigFrame(type = "bridge_restart", model = modelId, effort = _effort.value ?: "default")))
+        }
     }
 
     private fun setSelectedModel(modelId: String) {
@@ -509,13 +592,17 @@ class ClaudeChatBackend(
      * change is reverted (and shown), an accepted one is confirmed with [syncApplied]. Without a process it is a
      * spawn option of the next start (no process is started); before the chat is connected [spawnConfig] covers it.
      */
-    private fun applyControl(live: ClaudeControlRequestBody, spawn: BridgeConfigFrame, what: String, revert: () -> Unit) {
+    private fun applyControl(
+        live: ClaudeControlRequestBody,
+        spawn: BridgeConfigFrame,
+        what: String,
+        revert: () -> Unit,
+        configureLive: Boolean = false
+    ) {
         backendScope.launch(worker) {
             if (socket == null) return@launch
-            if (!processLive) {
-                send(ClaudeJson.encodeToString(spawn))
-                return@launch
-            }
+            if (!processLive || configureLive) send(ClaudeJson.encodeToString(spawn))
+            if (!processLive) return@launch
             val reply = request(live, timeoutMs = 15_000)
             when {
                 reply == null -> _controlMessages.tryEmit("Claude Code did not confirm the $what change")
@@ -544,6 +631,14 @@ class ClaudeChatBackend(
      * it already resolves to it (e.g. "default" → Opus 5.5).
      */
     private fun selectResolvedModel(resolved: String) {
+        val provider = providerOf(_selectedModelId.value)
+        if (provider.isNotEmpty()) {
+            // a provider's process reports the model's own id; a router (openrouter/free) reports the model it picked,
+            // which is not one of the provider's models: the choice stays
+            val known = _providers.value.find { it.id == provider }?.models?.any { it.id == resolved } == true
+            if (known && rawModel(_selectedModelId.value) != resolved) setSelectedModel("@$provider/$resolved")
+            return
+        }
         val infos = _modelInfos.value
         val current = infos.find { it.value == _selectedModelId.value }
         if (current?.value == resolved || current?.resolvedModel == resolved) return
@@ -718,7 +813,7 @@ class ClaudeChatBackend(
     private fun applyInfo(info: ClaudeInitializeInfo) {
         if (info.models.isNotEmpty()) {
             _modelInfos.value = info.models
-            _availableModels.value = info.models.map { m ->
+            officialModels = info.models.map { m ->
                 // "Default (recommended)" + "Opus 5.5 · Best for…" → "Default (Opus 5.5)"
                 val resolved = m.description.substringBefore(" · ", "").takeIf { m.value == "default" && it.isNotBlank() }
                 AiModel(
@@ -730,6 +825,7 @@ class ClaudeChatBackend(
                     baseName = m.displayName.ifBlank { m.value }
                 )
             }
+            publishModels()
         }
         _slashCommands.value = info.commands
             .filter { it.name !in HIDDEN_COMMANDS && !it.description.startsWith("(removed)") }
@@ -749,6 +845,75 @@ class ClaudeChatBackend(
             }
         _outputStyles.value = info.available_output_styles
         info.fast_mode_state?.let { _fastModeState.value = it }
+    }
+
+    /** Claude's models, then every provider's models ("@provider/model", described by the provider's name). */
+    private fun publishModels() {
+        _availableModels.value = officialModels + _providers.value.flatMap { p ->
+            p.models.map { m ->
+                val ref = "@${p.id}/${m.id}"
+                AiModel(
+                    id = ref,
+                    displayName = m.name?.takeIf { it.isNotBlank() } ?: m.id,
+                    family = com.example.gemini.domain.model.ModelFamily.CLAUDE,
+                    description = p.name,
+                    key = ref,
+                    baseName = m.id
+                )
+            }
+        }
+    }
+
+    /** Readable name of a model id, with the provider for a custom one ("Gemma 4 31B · OpenRouter"). */
+    fun modelLabel(modelId: String): String {
+        val provider = providerOf(modelId)
+        val model = _availableModels.value.find { it.id == modelId }
+        if (provider.isEmpty()) return "Claude " + (model?.displayName ?: modelId)
+        val providerName = _providers.value.find { it.id == provider }?.name ?: provider
+        return (model?.displayName ?: rawModel(modelId)) + " · " + providerName
+    }
+
+    suspend fun refreshProviders() {
+        client.providers().onSuccess { resp ->
+            if (!resp.success) return@onSuccess
+            _providers.value = resp.providers
+            _settingsEndpoint.value = resp.settings_endpoint?.takeIf { it.isNotBlank() }
+            publishModels()
+        }.onFailure { Log.w(TAG, "providers failed: ${it.message}") }
+    }
+
+    /** Adds or updates [provider]; [onDone] gets the error, or null when it was saved. */
+    fun saveProvider(provider: ClaudeProvider, onDone: (String?) -> Unit = {}) {
+        backendScope.launch {
+            val err = client.saveProvider(provider).fold({ if (it.success) null else it.error ?: "the bridge refused" }, { it.message ?: "failed" })
+            if (err == null) refreshProviders()
+            withContext(Dispatchers.Main) { onDone(err) }
+        }
+    }
+
+    fun deleteProvider(id: String) {
+        backendScope.launch {
+            client.deleteProvider(id).onFailure { _controlMessages.tryEmit("Cannot remove the provider: ${it.message}") }
+            refreshProviders()
+        }
+    }
+
+    fun fetchProviderModels(id: String, freeOnly: Boolean, onResult: (Result<List<ClaudeProviderModel>>) -> Unit) {
+        backendScope.launch {
+            val res = client.fetchProviderModels(id, freeOnly).mapCatching { if (it.success) it.models else error(it.error ?: "the provider did not answer") }
+            withContext(Dispatchers.Main) { onResult(res) }
+        }
+    }
+
+    fun importSettingsProvider(onDone: (String?) -> Unit = {}) {
+        backendScope.launch {
+            val err = client.importSettingsProvider().fold({ if (it.success) null else it.error ?: "the bridge refused" }, { it.message ?: "failed" })
+            if (err == null) {
+                refreshProviders()
+                loadChatDefaults()
+            }
+            withContext(Dispatchers.Main) { onDone(err) }
+        }
     }
 
     /**
@@ -881,6 +1046,12 @@ class ClaudeChatBackend(
             lastSeq = h.state.buffer_start_seq - 1
             processLive = h.state.live
             // resuming a chat continues on the model it last used (a running process is checked once attached)
+            if (!controlsTouched) {
+                when {
+                    h.model_ref.isNotBlank() -> setSelectedModel(h.model_ref)
+                    providerOf(_selectedModelId.value).isNotEmpty() -> _selectedModelId.value = chatDefaults.model ?: "default"
+                }
+            }
             if (!h.state.live && !controlsTouched) transcript.sessionModel?.let { selectResolvedModel(it) }
             val newest = h.state.next_seq - 1
             if (h.state.live && newest >= h.state.buffer_start_seq) {
@@ -996,6 +1167,10 @@ class ClaudeChatBackend(
                 }
                 when (type) {
                     "result" -> {
+                        queuedRestart?.let {
+                            queuedRestart = null
+                            restartOn(it)
+                        }
                         endCompactingNotice()
                         scheduleTitleRefresh()
                         onTurnFinished()
@@ -1249,6 +1424,12 @@ class ClaudeChatBackend(
 
     companion object {
         private const val TAG = "ClaudeChatBackend"
+
+        /** The provider id of a custom model ("@openrouter/x" → "openrouter"), "" for Claude's own models. */
+        fun providerOf(modelId: String): String = if (modelId.startsWith("@")) modelId.drop(1).substringBefore('/') else ""
+
+        /** The model's own id (without "@provider/"). */
+        fun rawModel(modelId: String): String = if (modelId.startsWith("@")) modelId.substringAfter('/') else modelId
 
         private val IMAGE_TYPES = setOf("image/jpeg", "image/png", "image/gif", "image/webp")
         /** Larger images are saved as files (the API takes inline images up to about 5 MB). */

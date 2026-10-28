@@ -68,6 +68,9 @@ type Manager struct {
 
 	logins loginRegistry
 
+	// provMu guards agy_providers.json (custom providers and which chat runs on one)
+	provMu sync.Mutex
+
 	jobMu sync.Mutex
 	job   *cliJob
 }
@@ -232,6 +235,8 @@ type Session struct {
 	historyCut *string
 	// rewindPending: the rewind is cleared once this process gets its first prompt
 	rewindPending bool
+	// quietExit: the process is being stopped to restart on other settings (another provider), not an exit
+	quietExit bool
 }
 
 // HistoryCut is the rewind point of the live process, if it was started at one.
@@ -266,6 +271,9 @@ func (s *Session) Configure(o SpawnOptions) {
 		s.opts.Model = ""
 	} else if o.Model != "" {
 		s.opts.Model = o.Model
+	}
+	if o.Model != "" {
+		s.mgr.rememberSessionModel(s.ID, o.Model)
 	}
 	if o.PermissionMode != "" {
 		s.opts.PermissionMode = o.PermissionMode
@@ -319,7 +327,17 @@ func (s *Session) spawnLocked() error {
 		return err
 	}
 	args := append([]string{}, baseArgs...)
-	if s.opts.Model != "" {
+	if providerID, model, custom := ParseModelRef(s.opts.Model); custom {
+		p, ok := s.mgr.provider(providerID)
+		if !ok {
+			return fmt.Errorf("custom provider %q was removed; choose another model", providerID)
+		}
+		settings, err := s.mgr.providerSettingsFile(p, model)
+		if err != nil {
+			return fmt.Errorf("custom provider settings: %w", err)
+		}
+		args = append(args, "--model", model, "--settings", settings)
+	} else if s.opts.Model != "" {
 		args = append(args, "--model", s.opts.Model)
 	}
 	// Bypass (skip every permission check) is never used: the app runs Claude in Auto unless the user chose a
@@ -410,6 +428,7 @@ func (s *Session) spawnLocked() error {
 	s.pendingTurns = 0
 	s.stderrTail = nil
 	s.historyCut = nil
+	s.quietExit = false
 	s.rewindPending = rewinding
 	if rewinding {
 		s.historyCut = &rewindAt
@@ -498,6 +517,12 @@ func (s *Session) wait(cmd *exec.Cmd, gen int) {
 		errText = err.Error()
 	}
 	log.Printf("[claude] session %s exited (code %d)", s.ID, code)
+	event, exitCode := "exited", &code
+	if s.quietExit {
+		// stopped by Restart: the next prompt starts the new process, nothing failed
+		s.quietExit = false
+		event, exitCode, errText = "restarted", nil, ""
+	}
 	s.cmd = nil
 	s.stdin = nil
 	s.pendingTurns = 0
@@ -509,7 +534,19 @@ func (s *Session) wait(cmd *exec.Cmd, gen int) {
 	s.historyOffset = 0
 	s.historyCut = nil
 	s.rewindPending = false
-	s.broadcastLocked(stateMessage(s.stateLocked(), "exited", &code, errText))
+	s.broadcastLocked(stateMessage(s.stateLocked(), event, exitCode, errText))
+}
+
+// Restart stops the process so the next prompt starts a new one with the current options (the chat resumes from its
+// transcript). Used when a chat moves to another provider, whose endpoint is fixed when the process starts.
+func (s *Session) Restart() {
+	s.mu.Lock()
+	live := s.cmd != nil
+	s.quietExit = live
+	s.mu.Unlock()
+	if live {
+		s.KillAndWait(6 * time.Second)
+	}
 }
 
 // Kill terminates the process (if any).

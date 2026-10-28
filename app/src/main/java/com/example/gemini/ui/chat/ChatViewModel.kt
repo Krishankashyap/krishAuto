@@ -178,6 +178,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     /** Claude's plan windows as the model pill's quota (remaining share of the 5-hour and weekly limits). */
     private val claudeQuotas: StateFlow<List<ModelQuota>> =
         combine(claudeBackend.selectedModelId, claudeBackend.rateLimits, claudeAccount.usage) { modelId, live, usage ->
+            // plan limits belong to Claude's own models; a custom provider's model has none
+            if (com.example.gemini.data.agent.claude.ClaudeChatBackend.providerOf(modelId).isNotEmpty()) return@combine emptyList()
             // live windows from the chat stream are fresher than the cached usage call (percent there)
             val five = live["five_hour"]?.let { it.utilization to it.resetsAt?.let(::isoUtc) }
                 ?: usage?.rate_limits?.five_hour?.let { (it.utilization ?: 0.0) / 100.0 to it.resets_at }

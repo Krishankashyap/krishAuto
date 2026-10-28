@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
@@ -94,6 +95,7 @@ import kotlinx.serialization.json.JsonPrimitive
 enum class ClaudeSettingsPage(val title: String, val subtitle: String) {
     ACCOUNT("Account & CLI", "Sign-in, plan usage, install and update Claude Code"),
     DEFAULTS("Chat defaults", "Model, effort, thinking, permission mode, output style"),
+    PROVIDERS("Custom providers", "OpenRouter, Kimi and other Anthropic-compatible APIs"),
     PERMISSIONS("Permission rules", "What Claude may do without asking"),
     MCP("MCP servers", "Tools Claude can call"),
     PLUGINS("Plugins", "Installed plugins, catalog and marketplaces"),
@@ -138,6 +140,9 @@ fun ClaudeSettingsGroup(deps: ClaudeSettingsDeps, onOpen: (ClaudeSettingsPage) -
             badgeColor = accountColor
         ) { onOpen(ClaudeSettingsPage.ACCOUNT) }
         ClaudeNavCard(Icons.Outlined.Tune, ClaudeSettingsPage.DEFAULTS.title, ClaudeSettingsPage.DEFAULTS.subtitle) { onOpen(ClaudeSettingsPage.DEFAULTS) }
+        val providers by deps.backend.providers.collectAsState()
+        ClaudeNavCard(Icons.Outlined.Cloud, ClaudeSettingsPage.PROVIDERS.title, ClaudeSettingsPage.PROVIDERS.subtitle,
+            badge = providers.size.takeIf { it > 0 }?.let { "$it added" }) { onOpen(ClaudeSettingsPage.PROVIDERS) }
         val allowCount = settings?.let { deps.config.rules("allow").size } ?: 0
         ClaudeNavCard(Icons.Outlined.Security, ClaudeSettingsPage.PERMISSIONS.title, ClaudeSettingsPage.PERMISSIONS.subtitle,
             badge = allowCount.takeIf { it > 0 }?.let { "$it allowed" }) { onOpen(ClaudeSettingsPage.PERMISSIONS) }
@@ -172,6 +177,7 @@ fun ClaudeSettingsScreen(deps: ClaudeSettingsDeps, page: ClaudeSettingsPage, onB
         when (page) {
             ClaudeSettingsPage.ACCOUNT -> AccountPage(deps)
             ClaudeSettingsPage.DEFAULTS -> DefaultsPage(deps)
+            ClaudeSettingsPage.PROVIDERS -> ProvidersPage(deps)
             ClaudeSettingsPage.PERMISSIONS -> PermissionsPage(deps)
             ClaudeSettingsPage.MCP -> McpPage(deps)
             ClaudeSettingsPage.PLUGINS -> Unit

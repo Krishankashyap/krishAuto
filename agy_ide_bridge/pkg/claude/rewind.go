@@ -141,5 +141,6 @@ func (m *Manager) ForkSession(id, newID, title string) error {
 	if at, ok := m.rewindPoint(id); ok {
 		_ = m.setRewind(newID, at)
 	}
+	m.copySessionModel(id, newID)
 	return nil
 }

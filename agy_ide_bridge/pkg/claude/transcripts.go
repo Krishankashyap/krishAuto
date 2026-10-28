@@ -363,6 +363,7 @@ func (m *Manager) DeleteSession(id string) error {
 	}
 	m.removeAttachments(id)
 	m.clearRewind(id)
+	m.rememberSessionModel(id, "")
 	path := m.FindTranscript(id)
 	if path == "" {
 		return nil

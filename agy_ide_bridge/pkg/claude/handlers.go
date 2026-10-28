@@ -41,6 +41,7 @@ var upgrader = websocket.Upgrader{
 //	GET    /api/claude/auth/login/{id}          login state; POST …/code {"code"}; DELETE cancels
 //	GET    /api/claude/usage[?refresh=1]        plan limits & cost (`get_usage`)
 //	GET|PUT /api/claude/settings                ~/.claude/settings.json
+//	/api/claude/providers[/{id}[/fetch-models]] custom Anthropic-compatible providers (see providers.go)
 //	GET|PUT /api/claude/memory?scope=user|project&cwd=  CLAUDE.md
 //	GET|DELETE /api/claude/memory/auto?cwd=[&name=]     notes Claude saved by itself for the project
 //	GET|POST|DELETE /api/claude/mcp             MCP servers (status / add / remove)
@@ -60,6 +61,8 @@ func (m *Manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		m.handleUsage(w, r)
 	case path == "/settings":
 		m.handleSettings(w, r)
+	case path == "/providers" || strings.HasPrefix(path, "/providers/"):
+		m.handleProviders(w, r, strings.TrimPrefix(strings.TrimPrefix(path, "/providers"), "/"))
 	case path == "/memory":
 		m.handleMemory(w, r)
 	case path == "/memory/auto":
@@ -131,7 +134,7 @@ func (m *Manager) handleSessionREST(w http.ResponseWriter, r *http.Request, rest
 			writeJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]interface{}{"success": true, "entries": entries, "state": st})
+		writeJSON(w, http.StatusOK, map[string]interface{}{"success": true, "entries": entries, "state": st, "model_ref": m.SessionModelRef(id)})
 	case action == "title" && r.Method == http.MethodPost:
 		var body struct {
 			Title string `json:"title"`
@@ -299,6 +302,12 @@ func (m *Manager) serveSessionWS(w http.ResponseWriter, r *http.Request) {
 			var o SpawnOptions
 			_ = json.Unmarshal(msg, &o)
 			sess.Configure(o)
+		case "bridge_restart":
+			// options of the new process (another provider), applied by the next prompt
+			var o SpawnOptions
+			_ = json.Unmarshal(msg, &o)
+			sess.Configure(o)
+			sess.Restart()
 		case "bridge_kill":
 			sess.Kill()
 		default:

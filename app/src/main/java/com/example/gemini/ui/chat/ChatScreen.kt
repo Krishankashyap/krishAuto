@@ -348,6 +348,11 @@ fun ChatScreen(
     var showClaudeUsage by remember { mutableStateOf(false) }
     var showClaudeContext by remember { mutableStateOf(false) }
     val claudeState by viewModel.claudeAccount.state.collectAsState()
+    // a chat on a custom provider's model needs no Claude login: it can send (and shows no sign-in prompt) signed out
+    val claudeChatState = if (
+        com.example.gemini.data.agent.claude.ClaudeChatBackend.providerOf(selectedModelId).isNotEmpty() &&
+        (claudeState == com.example.gemini.data.agent.claude.ClaudeStatus.SIGNED_OUT || claudeState == com.example.gemini.data.agent.claude.ClaudeStatus.SIGNING_IN)
+    ) com.example.gemini.data.agent.claude.ClaudeStatus.READY else claudeState
     val claudeStatusError by viewModel.claudeAccount.statusError.collectAsState()
     val openClaudeSetup = {
         claudeSettingsPage = com.example.gemini.ui.claude.ClaudeSettingsPage.ACCOUNT
@@ -1362,9 +1367,9 @@ fun ChatScreen(
                                     )
                                 }
 
-                                if (isClaudeChat && claudeState != com.example.gemini.data.agent.claude.ClaudeStatus.READY) {
+                                if (isClaudeChat && claudeChatState != com.example.gemini.data.agent.claude.ClaudeStatus.READY) {
                                     com.example.gemini.ui.claude.ClaudeStatusPrompt(
-                                        state = claudeState,
+                                        state = claudeChatState,
                                         error = claudeStatusError,
                                         onSignIn = { showClaudeLogin = true },
                                         onSetup = openClaudeSetup,
@@ -1961,7 +1966,7 @@ fun ChatScreen(
                     }
                     if (messages.isNotEmpty() && !serverRestarting) {
                         com.example.gemini.ui.claude.ClaudeStatusBanner(
-                            state = claudeState,
+                            state = claudeChatState,
                             onSignIn = { showClaudeLogin = true },
                             onSetup = openClaudeSetup,
                             onRestartServer = { com.example.gemini.data.local.LocalServerManager.restartServer(context) },
@@ -1974,7 +1979,7 @@ fun ChatScreen(
                 // Chat Input Bar with Bottom Model & Thinking Selector Pills (Claude Android Style)
                 ChatInputBar(
                     isOnline = if (isClaudeChat) !claudeState.isBlocking else systemConnectionState.canSend,
-                    isAuth = if (isClaudeChat) claudeState != com.example.gemini.data.agent.claude.ClaudeStatus.SIGNED_OUT && claudeState != com.example.gemini.data.agent.claude.ClaudeStatus.SIGNING_IN else systemConnectionState.isAuth,
+                    isAuth = if (isClaudeChat) claudeChatState != com.example.gemini.data.agent.claude.ClaudeStatus.SIGNED_OUT && claudeChatState != com.example.gemini.data.agent.claude.ClaudeStatus.SIGNING_IN else systemConnectionState.isAuth,
                     offlineMessage = if (isClaudeChat) when (claudeState) {
                         com.example.gemini.data.agent.claude.ClaudeStatus.NOT_INSTALLED -> "Claude Code is not installed. Set it up in Settings."
                         com.example.gemini.data.agent.claude.ClaudeStatus.BRIDGE_OUTDATED -> "Restart the local server to use Claude Code."
@@ -2045,6 +2050,7 @@ fun ChatScreen(
     }
 
     // Model Selector Bottom Sheet (Active Model at Top & Expandable Categories)
+    if (isClaudeChat) com.example.gemini.ui.claude.ClaudeProviderSwitchDialog(claudeBackend)
     if (showModelSelector && isClaudeChat) {
         com.example.gemini.ui.claude.ClaudeModelSheet(claudeBackend, viewModel.claudeAccount) { showModelSelector = false }
     } else if (showModelSelector) {
