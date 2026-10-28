@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.FolderSpecial
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.*
@@ -45,6 +46,7 @@ fun ProjectPickerDialog(
     activeProject: ProjectItem?,
     onSelectProject: (ProjectItem?) -> Unit,
     onBrowseFolder: () -> Unit,
+    onCloneRepo: (() -> Unit)? = null,
     onRefresh: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
@@ -349,6 +351,36 @@ fun ProjectPickerDialog(
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
+
+                // Bottom Action: Clone a public git repository into home
+                if (onCloneRepo != null) {
+                    OutlinedButton(
+                        onClick = {
+                            onDismiss()
+                            onCloneRepo()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, ClaudeTerracotta.copy(alpha = 0.6f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CloudDownload,
+                            contentDescription = null,
+                            tint = ClaudeTerracotta,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Use Git Repository...",
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ClaudeTerracotta
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
                 // Bottom Action: Add / Browse Folder in File Manager
                 Button(

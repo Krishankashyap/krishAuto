@@ -287,6 +287,7 @@ fun ChatScreen(
     var showSettingsDialog by remember { mutableStateOf(false) }
     var showAttachmentSelector by remember { mutableStateOf(false) }
     var showProjectPickerDialog by remember { mutableStateOf(false) }
+    var showGitCloneDialog by remember { mutableStateOf(false) }
     var showWorkspaceFolderBrowserDialog by remember { mutableStateOf(false) }
     var showStopConfirmDialog by remember { mutableStateOf(false) }
     var isInitialGracePeriod by remember { mutableStateOf(true) }
@@ -2699,12 +2700,27 @@ fun ChatScreen(
                 showProjectPickerDialog = false
                 showWorkspaceFolderBrowserDialog = true
             },
+            onCloneRepo = {
+                showProjectPickerDialog = false
+                showGitCloneDialog = true
+            },
             onRefresh = {
                 scope.launch {
                     TermuxDaemonManager.loadProjects(conversations)
                 }
             },
             onDismiss = { showProjectPickerDialog = false }
+        )
+    }
+
+    if (showGitCloneDialog) {
+        com.example.gemini.ui.components.GitCloneDialog(
+            onCloned = { clonedProj ->
+                showGitCloneDialog = false
+                TermuxDaemonManager.setActiveProject(clonedProj)
+                viewModel.onProjectChanged(clonedProj.path)
+            },
+            onDismiss = { showGitCloneDialog = false }
         )
     }
 

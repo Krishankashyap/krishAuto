@@ -250,6 +250,9 @@ val copyScriptsToAssets = tasks.register<Copy>("copyScriptsToAssets") {
   from(layout.projectDirectory.file("../scripts/backup_proot_ubuntu.sh")) {
     rename { "backup_proot_ubuntu" }
   }
+  from(layout.projectDirectory.file("../scripts/git_clone.sh")) {
+    rename { "git_clone" }
+  }
   into(layout.projectDirectory.dir("src/main/assets/bin"))
 }
 

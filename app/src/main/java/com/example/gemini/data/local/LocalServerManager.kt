@@ -88,6 +88,7 @@ object LocalServerManager {
         val backupProjectsFile = File(binDir, "backup_projects")
         val restoreProjectsFile = File(binDir, "restore_projects")
         val backupProotUbuntuFile = File(binDir, "backup_proot_ubuntu")
+        val gitCloneFile = File(binDir, "git_clone")
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val lastSavedUpdate = prefs.getLong(KEY_BRIDGE_LAST_UPDATE_TIME, 0L)
@@ -107,7 +108,7 @@ object LocalServerManager {
         val currentAppUpdateTime = packageInfo?.lastUpdateTime ?: 0L
 
         val needsCopy =
-            !bridgeFile.exists() || !backupFile.exists() || !backupChatsFile.exists() || !restoreChatsFile.exists() || !backupProjectsFile.exists() || !restoreProjectsFile.exists() || !backupProotUbuntuFile.exists() || (currentAppUpdateTime > 0L && currentAppUpdateTime != lastSavedUpdate)
+            !bridgeFile.exists() || !backupFile.exists() || !backupChatsFile.exists() || !restoreChatsFile.exists() || !backupProjectsFile.exists() || !restoreProjectsFile.exists() || !backupProotUbuntuFile.exists() || !gitCloneFile.exists() || (currentAppUpdateTime > 0L && currentAppUpdateTime != lastSavedUpdate)
 
         if (needsCopy) {
             try {
@@ -144,6 +145,11 @@ object LocalServerManager {
                     extractAssetToBin(context, binDir, "backup_proot_ubuntu")
                 } catch (e: Exception) {
                     Log.w(TAG, "backup_proot_ubuntu asset not extracted", e)
+                }
+                try {
+                    extractAssetToBin(context, binDir, "git_clone")
+                } catch (e: Exception) {
+                    Log.w(TAG, "git_clone asset not extracted", e)
                 }
 
                 // Also copy agy_ide_bridge to public Downloads folder for user access
