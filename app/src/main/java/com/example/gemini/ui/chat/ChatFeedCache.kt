@@ -139,6 +139,7 @@ object ChatFeedCache {
         }
 
         var lastDay: String? = null
+        var lastPromptAt = 0L
         var lastModel: String? = null
         // where the latest prompt's items start: a model divider goes right before that prompt
         var promptStart = -1
@@ -148,7 +149,10 @@ object ChatFeedCache {
                 if (day != lastDay) {
                     addItem(ChatFeedItem.Divider("day_$day", dayLabel(msg.createdAt)))
                     lastDay = day
+                } else if (lastPromptAt > 0 && msg.createdAt - lastPromptAt >= GAP_DIVIDER_MS) {
+                    addItem(ChatFeedItem.Divider("gap_${msg.id}", dayLabel(msg.createdAt)))
                 }
+                lastPromptAt = msg.createdAt
                 promptStart = result.size
             }
             if (dividers && msg.role == MessageRole.ASSISTANT && msg.modelId != null) {
@@ -209,12 +213,16 @@ object ChatFeedCache {
         return "${c.get(java.util.Calendar.YEAR)}-${c.get(java.util.Calendar.DAY_OF_YEAR)}"
     }
 
-    /** "Sat, Oct 10" in the phone's language and format; the year is added when it is not this year. */
+    /** A prompt sent this long after the previous one on the same day gets a divider with the time. */
+    private const val GAP_DIVIDER_MS = 60 * 60 * 1000L
+
+    /** "Sat, Oct 10, 15:45" (24-hour time) in the phone's language; the year is added when it is not this year. */
     private fun dayLabel(millis: Long): String {
         val locale = java.util.Locale.getDefault()
         val thisYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
         val year = java.util.Calendar.getInstance().apply { timeInMillis = millis }.get(java.util.Calendar.YEAR)
-        val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, if (year == thisYear) "EEEMMMd" else "EEEMMMdyyyy")
+        val skeleton = (if (year == thisYear) "EEEMMMd" else "EEEMMMdyyyy") + "Hmm"
+        val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, skeleton)
         return java.text.SimpleDateFormat(pattern, locale).format(java.util.Date(millis))
     }
 }

@@ -756,7 +756,7 @@ fun ChatScreen(
     // the user (an approval or a question)
     val waitingForUser = (isClaudeChat && claudePending.isNotEmpty()) ||
         lastToolCalls.any { it.status == "PENDING_APPROVAL" || it.status == "AWAITING_CHOICE" }
-    val showWorkingRow = workingAnimationEnabled && (isRunningOrStreaming || holdingTail) && !waitingForUser
+    val showWorkingRow = workingAnimationEnabled && (isRunningOrStreaming || holdingTail) && !waitingForUser && !footerShown
 
     val currentModel = if (isClaudeChat) {
         claudeModelList.find { it.id == selectedModelId } ?: AiModel(
@@ -1578,8 +1578,8 @@ fun ChatScreen(
                                             com.example.gemini.ui.components.AgentWorkingSpinner(
                                                 color = if (isClaudeChat) com.example.gemini.ui.components.ClaudeAccent else com.example.gemini.ui.components.AgyAccent,
                                                 compacting = isClaudeChat && claudeCompacting,
-                                                // fades out where the reply's footer fades in
-                                                modifier = Modifier.animateItem(fadeInSpec = tween(180), placementSpec = null, fadeOutSpec = tween(220))
+                                                // leaves in the frame the reply's footer arrives, which fades in in its place
+                                                modifier = Modifier.animateItem(fadeInSpec = tween(180), placementSpec = null, fadeOutSpec = null)
                                             )
                                         }
                                     }
