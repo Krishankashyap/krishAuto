@@ -18,7 +18,7 @@ python studio.py check && python studio.py sheet && python studio.py render
 You can install **2D Video Editing Studio** directly inside the **AntiGem** app:
 
 1. Open **AntiGem**.
-2. Go to **Settings → Custom AntiGem Plugins → Repositories**.
+2. Go to **Settings → Custom AutoKrish Plugins → Repositories**.
 3. Add this repository:
    ```
    Dipeshkrydv/2d-video-editing-skill
