@@ -82,7 +82,7 @@ fun X11DesktopScreen(cardBg: Color, cardBorder: BorderStroke, onOpenAdbConnect: 
             Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = cardBg), border = cardBorder) {
                 Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Install the Linux environment first", fontSize = 14.5.sp, fontWeight = FontWeight.Bold)
-                    Hint("The desktop runs in AntiGem's terminal. Install it in Settings → Terminal & Shell, then come back here.")
+                    Hint("The desktop runs in YouTube Automation's terminal. Install it in Settings → Terminal & Shell, then come back here.")
                 }
             }
             return@Column
@@ -102,7 +102,7 @@ fun X11DesktopScreen(cardBg: Color, cardBorder: BorderStroke, onOpenAdbConnect: 
         ) {
             when {
                 app == null -> {
-                    Hint("AntiGem's own build of Termux:X11, the app that shows the desktop. It runs inside AntiGem, so Android keeps the desktop running at full speed while you use it.")
+                    Hint("YouTube Automation's own build of Termux:X11, the app that shows the desktop. It runs inside YouTube Automation, so Android keeps the desktop running at full speed while you use it.")
                     Button(enabled = !busy, onClick = X11DesktopManager::installApp) {
                         Icon(Icons.Outlined.Download, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Download & install")
                     }
@@ -110,8 +110,8 @@ fun X11DesktopScreen(cardBg: Color, cardBorder: BorderStroke, onOpenAdbConnect: 
                 state.appOk -> {
                     Mono(
                         "Termux:X11 ${app.versionName ?: ""}".trim() + "\n" + when {
-                            app.sameProcess -> "AntiGem's build, runs inside AntiGem"
-                            app.antigemBuild -> "AntiGem's build"
+                            app.sameProcess -> "YouTube Automation's build, runs inside YouTube Automation"
+                            app.antigemBuild -> "YouTube Automation's build"
                             else -> "Official build"
                         }
                     )
@@ -119,8 +119,8 @@ fun X11DesktopScreen(cardBg: Color, cardBorder: BorderStroke, onOpenAdbConnect: 
                 }
                 else -> {
                     Text(
-                        if (app.antigemBuild) "This Termux:X11 doesn't share AntiGem's UID, so it can't run inside AntiGem. Uninstall it, then install it again."
-                        else "The official Termux:X11 is installed. It can't run inside AntiGem, and Android won't install AntiGem's build over it (they are signed differently). Uninstall it first, then install AntiGem's build.",
+                        if (app.antigemBuild) "This Termux:X11 doesn't share YouTube Automation's UID, so it can't run inside YouTube Automation. Uninstall it, then install it again."
+                        else "The official Termux:X11 is installed. It can't run inside YouTube Automation, and Android won't install YouTube Automation's build over it (they are signed differently). Uninstall it first, then install YouTube Automation's build.",
                         fontSize = 12.5.sp, color = MaterialTheme.colorScheme.error
                     )
                     Button(enabled = !busy, onClick = { X11DesktopManager.uninstallApp(context) }) {
@@ -290,10 +290,10 @@ private fun IntroCard(shared: Boolean, running: Boolean, cardBg: Color, cardBord
                 Text("Linux desktop", fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 if (running) Pill("Running", QuotaGreen)
             }
-            Hint("Run Linux desktop apps (a browser, an IDE, office apps) from AntiGem's terminal. Termux:X11 shows the desktop.")
+            Hint("Run Linux desktop apps (a browser, an IDE, office apps) from YouTube Automation's terminal. Termux:X11 shows the desktop.")
             if (shared) {
                 Text(
-                    "The desktop runs inside AntiGem, so Android won't slow it down or stop it while you use it.",
+                    "The desktop runs inside YouTube Automation, so Android won't slow it down or stop it while you use it.",
                     fontSize = 12.sp, color = QuotaGreen
                 )
             }
@@ -344,17 +344,17 @@ private fun ManualSetupCard(desktop: Desktop, cardBg: Color, cardBorder: BorderS
                     }
                 }
             }
-            Hint("Don't install termux-x11-nightly from x11-repo: it only works with the official Termux:X11, not AntiGem's build.")
+            Hint("Don't install termux-x11-nightly from x11-repo: it only works with the official Termux:X11, not YouTube Automation's build.")
         }
     }
 }
 
-private const val ANTIGEM_RELEASES = "https://github.com/Santoshkurmi/antigem/releases/latest"
-private const val ANTIGEM_README_SHARED_UID = "https://github.com/Santoshkurmi/antigem#termux-compatibility"
+private const val ANTIGEM_RELEASES = "https://github.com/KrishanKashyap/krishAuto/releases/tag/x11-v1"
+private const val ANTIGEM_README_SHARED_UID = "https://github.com/KrishanKashyap/krishAuto#termux-compatibility"
 
 /**
  * Shown on the standalone com.termux build in place of a feature that needs a companion app sharing
- * AntiGem's UID: what the Shared UID build is and how to switch to it.
+ * YouTube Automation's UID: what the Shared UID build is and how to switch to it.
  */
 @Composable
 internal fun SharedUidRequiredCard(feature: String, cardBg: Color, cardBorder: BorderStroke) {
@@ -368,14 +368,14 @@ internal fun SharedUidRequiredCard(feature: String, cardBg: Color, cardBorder: B
                 Pill("Standalone", Amber)
             }
             Text(
-                "This is the standalone build of AntiGem. $feature needs the Shared UID build, which shares AntiGem's Linux user with its companion app so they can work together.",
+                "This is the standalone build of YouTube Automation. $feature needs the Shared UID build, which shares YouTube Automation's Linux user with its companion app so they can work together.",
                 fontSize = 12.5.sp
             )
             Text("To switch:", fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
             listOf(
-                "Back up what you want to keep (Settings → Backups & Restore). Uninstalling deletes AntiGem's data, including the terminal and its files.",
-                "Uninstall this AntiGem. Android can't switch an installed app to a shared UID with an update.",
-                "Download and install the Shared UID build (antiGem-termux-shared-….apk) from AntiGem's releases.",
+                "Back up what you want to keep (Settings → Backups & Restore). Uninstalling deletes YouTube Automation's data, including the terminal and its files.",
+                "Uninstall this YouTube Automation. Android can't switch an installed app to a shared UID with an update.",
+                "Download and install the Shared UID build (YouTubeAutomation-termux-shared-….apk) from YouTube Automation's releases.",
                 "Read the README's Termux compatibility section for the details."
             ).forEachIndexed { i, step -> Hint("${i + 1}. $step") }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

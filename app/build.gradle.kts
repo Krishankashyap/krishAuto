@@ -35,7 +35,7 @@ android {
         targetSdk = 28
         versionCode = appVersionCode
         versionName = appVersionName
-        // Only arm64 runs AntiGem (its glibc, proot and IDE bridge are arm64): leave the other ABIs' copies of
+        // Only arm64 runs YouTube Automation (its glibc, proot and IDE bridge are arm64): leave the other ABIs' copies of
         // dependency libraries out of the APK
         ndk { abiFilters += "arm64-v8a" }
     }
@@ -94,7 +94,7 @@ android {
     }
 
     base {
-        archivesName.set("antiGem")
+        archivesName.set("YouTubeAutomation")
     }
 
     compileOptions {

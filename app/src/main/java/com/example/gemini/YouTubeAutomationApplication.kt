@@ -12,7 +12,7 @@ import com.telemetrydeck.sdk.TelemetryDeck
 import java.security.MessageDigest
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
-class AntiGemApplication : Application(), coil.ImageLoaderFactory {
+class YouTubeAutomationApplication : Application(), coil.ImageLoaderFactory {
     /**
      * Images that live on the bridge (a server's files, attachments) need the security header, which Coil's
      * default client does not send. Only requests to the bridge address get it.
@@ -50,7 +50,7 @@ class AntiGemApplication : Application(), coil.ImageLoaderFactory {
         if (!BuildConfig.DEBUG && !isOfficialRelease()) {
             Toast.makeText(
                 this,
-                "Unofficial build: analytics disabled. Developer: set your own TelemetryDeck app ID and RELEASE_CERT_SHA256 in AntiGemApplication.kt.",
+                "Unofficial build: analytics disabled. Developer: set your own TelemetryDeck app ID and RELEASE_CERT_SHA256 in YouTubeAutomationApplication.kt.",
                 Toast.LENGTH_LONG
             ).show()
             return

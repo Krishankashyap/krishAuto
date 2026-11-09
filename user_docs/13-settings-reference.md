@@ -1,6 +1,6 @@
 # 13 — Complete Settings Reference
 
-This guide is an exhaustive reference for every section, screen, and setting in AntiGem.
+This guide is an exhaustive reference for every section, screen, and setting in YouTube Automation.
 
 To open Settings: Tap the **Gear icon (⚙️)** in the Chat Drawer or the IDE sidebar.
 
@@ -14,7 +14,7 @@ The settings hierarchy is organized into 38 authoritative `SettingsSection` dest
 Settings & Preferences (MAIN)
 ├── Appearance & Theme (APPEARANCE)
 ├── Servers & Connectivity (SERVERS)
-├── Custom AntiGem Plugins (WEBVIEW_EXTENSIONS)
+├── Custom YouTube Automation Plugins (WEBVIEW_EXTENSIONS)
 ├── Slash Commands (SLASH_COMMANDS)
 ├── MCP Servers (MCP)
 ├── Skills & Plugins (SKILLS_PLUGINS)
@@ -55,7 +55,7 @@ Settings & Preferences (MAIN)
 ---
 
 ## 1. Settings & Preferences (`MAIN`)
-*Subtitle: "Configure your AntiGem experience"*
+*Subtitle: "Configure your YouTube Automation experience"*
 The root settings menu. Displays clean, rounded groups of rows for quick navigation to all sub-screens, including current status indicators (e.g. server online status, active agent count, theme mode, and GitHub sign-in state).
 
 ---
@@ -68,7 +68,7 @@ The root settings menu. Displays clean, rounded groups of rows for quick navigat
   - `Dark`: Dark theme optimized for night use and OLED battery savings.
 - **Built-in Color Themes** (`BuiltInThemes.all` — 25 palettes):
   - *Light Themes (8)*: **Porcelain** (Default light with amber accent), **Lavender** (Soft lilac with violet accent), **Sky** (Crisp airy light blue), **Sakura** (Soft cherry blossom pink), **Mint** (Fresh light green), **Linen** (Warm minimal off-white), **Paper** (Warm sepia paper), and **Solarized Light** (Classic low-glare cream).
-  - *Dark Themes (17)*: **Midnight Aurora** (Default dark with ink-blue, violet and aurora teal), **Obsidian** (Deep black with periwinkle glow), **Graphite** (Warm charcoal with glowing amber), **Midnight** (Pure OLED black with electric cyan), **High Contrast** (Maximum readability: white on black with bold yellow), **Amber Night** (Original AntiGem dark look), **Mocha** (Pastel cocoa-blue with lavender and pink), **Neon City** (Nighttime blues with electric violet), **Aurora** (Teal and violet over night sky), **Nord** (Calm arctic blue-grey), **Dracula** (Dark purple with vivid pink, green and cyan), **Velvet** (Dusky rose and soft violet on deep plum), **Deep Ocean** (Deep navy with sky-blue accent), **Ember** (Retro warm dark with toasted browns and orange), **Forest** (Dark pine green with leaf accent), **Sunset** (Warm plum dusk with orange glow), and **Solarized Dark** (Classic teal-black).
+  - *Dark Themes (17)*: **Midnight Aurora** (Default dark with ink-blue, violet and aurora teal), **Obsidian** (Deep black with periwinkle glow), **Graphite** (Warm charcoal with glowing amber), **Midnight** (Pure OLED black with electric cyan), **High Contrast** (Maximum readability: white on black with bold yellow), **Amber Night** (Original YouTube Automation dark look), **Mocha** (Pastel cocoa-blue with lavender and pink), **Neon City** (Nighttime blues with electric violet), **Aurora** (Teal and violet over night sky), **Nord** (Calm arctic blue-grey), **Dracula** (Dark purple with vivid pink, green and cyan), **Velvet** (Dusky rose and soft violet on deep plum), **Deep Ocean** (Deep navy with sky-blue accent), **Ember** (Retro warm dark with toasted browns and orange), **Forest** (Dark pine green with leaf accent), **Sunset** (Warm plum dusk with orange glow), and **Solarized Dark** (Classic teal-black).
 - **Chat Text Scaling (…%)**:
   - Subtitle: *"Scales messages, markdown, and code blocks"* (scales messages, markdown, and code blocks together).
   - Slider: Adjusts font size continuously from 75% to 160% (range `0.75f..1.60f`, 16 steps).
@@ -114,11 +114,11 @@ A comprehensive configuration screen for managing local and remote agent daemons
 - **Security Token (Header Obfuscation)**:
   - 12-Character Secret Token, HTTP Framed Header display, **Randomize** button, **Copy Header** button.
 - **Save Server & Security Settings**:
-  - Validates all fields and prompts with **Reopen AntiGem?** (**Reopen Now** / **Later**).
+  - Validates all fields and prompts with **Reopen YouTube Automation?** (**Reopen Now** / **Later**).
 
 ---
 
-## 4. Custom AntiGem Plugins (`WEBVIEW_EXTENSIONS`)
+## 4. Custom YouTube Automation Plugins (`WEBVIEW_EXTENSIONS`)
 *Subtitle: "Install and manage plugins: MCP tools and skills"*
 - **Tabs**: **Installed** and **Repositories**.
 - **Installed Tab**: Lists installed plugins with folder name, version, tool count, and skill count. Includes:
@@ -126,7 +126,7 @@ A comprehensive configuration screen for managing local and remote agent daemons
   - **Refresh**: Re-indexes installed plugins.
   - Per-plugin actions: **Download as ZIP**, **Remove** (with *"Also delete its stored data"* checkbox), **Reload**, **Update ZIP** / **Update plugin**, and **Update** when a new repository version is available.
 - **Repositories Tab**: Browse and install plugins directly from configured plugin repositories.
-- **MCP & Chat Integration**: Use the **Custom AntiGem Plugin MCP** preset in MCP settings to provide plugin tools to agents, or type `/plu:` in chat.
+- **MCP & Chat Integration**: Use the **Custom YouTube Automation Plugin MCP** preset in MCP settings to provide plugin tools to agents, or type `/plu:` in chat.
 - *(For complete guide, see [Skills & Plugins Guide](10-plugins-and-skills.md)).*
 
 ---
@@ -216,7 +216,7 @@ The settings row badge displays `<N> skills · <M> plugins`. Tapping it opens th
   - Description: *"Pick projects from the IDE and chat workspaces. Choose a clean git-aware archive (skips node_modules and build output) or a full copy. Restores map back to the right folders, with a safety backup."*
   - Button: **Manage projects**
   - Dialog options: Tabs for **Backup** and **Restore**, selection of **Git-Aware (Clean)** (*Excludes node_modules & build caches*) or **Full Raw Archive** (*All files, symlinks & permissions as-is*), select all/deselect, and project item tree.
-*(Note: "Clear Temporary Cache" is not in Backups & Restore; it is located in AntiGem Space Manager).*
+*(Note: "Clear Temporary Cache" is not in Backups & Restore; it is located in YouTube Automation Space Manager).*
 
 ---
 
@@ -227,20 +227,20 @@ Banner: **Data Loss Prevention** (*"Protect your local Linux environment, CLI to
   - Status: Displays **"Status: Protected (Device Admin Active)"** (green) or **"Status: Inactive (Optional)"** (gray).
   - Protection: Activating Android Device Administrator greys out the "Uninstall" button at the OS level across phone launchers, preventing accidental deletion of project repos and Linux packages.
   - Buttons: **Activate Uninstall Protection** (or **Deactivate Uninstall Protection**), and **Open System Device Admin Apps List**.
-  - Confirmation Dialog: Tapping deactivate prompts **"Disable Uninstall Protection?"** (*"This will remove AntiGem's Device Admin status. The app will become vulnerable to accidental home-screen uninstallation."*) with buttons **Deactivate** and **Cancel**.
+  - Confirmation Dialog: Tapping deactivate prompts **"Disable Uninstall Protection?"** (*"This will remove YouTube Automation's Device Admin status. The app will become vulnerable to accidental home-screen uninstallation."*) with buttons **Deactivate** and **Cancel**.
   - Sideloaded App Tip (Android 13+): *"If your phone shows 'Restricted setting', open App Info > tap the 3 dots in the top right > select 'Allow restricted settings'."* with button **Open App Info**.
 - **Card 2: App Info Clear Data Shield**:
   - Status: Displays **"Enabled (Replaces Clear Data with Space Manager)"** (blue) or **"Disabled (Standard OS Clear Data)"** (gray).
-  - Switch Toggle: When enabled (default), tapping "Clear Data" inside Android system Settings > App Info routes directly to AntiGem's Safe Space Manager instead of wiping everything instantly with one tap.
-  - Buttons: **Open App Info** and **Open Space Manager Preview** (which opens AntiGem Space Manager directly).
+  - Switch Toggle: When enabled (default), tapping "Clear Data" inside Android system Settings > App Info routes directly to YouTube Automation's Safe Space Manager instead of wiping everything instantly with one tap.
+  - Buttons: **Open App Info** and **Open Space Manager Preview** (which opens YouTube Automation Space Manager directly).
 
 ---
 
-## 🗄️ AntiGem Space Manager (Standalone System Screen)
+## 🗄️ YouTube Automation Space Manager (Standalone System Screen)
 *Subtitle: "Safe storage and data loss protection"*
 
-Opened from **Android Settings → Apps → AntiGem → Storage → "Manage space"** (when App Info Clear Data Shield is active) or via **Open Space Manager Preview** in Data Loss Protection settings.
-- **Header**: **"AntiGem Space Manager"** with subtitle *"Safe storage and data loss protection"*.
+Opened from **Android Settings → Apps → YouTube Automation → Storage → "Manage space"** (when App Info Clear Data Shield is active) or via **Open Space Manager Preview** in Data Loss Protection settings.
+- **Header**: **"YouTube Automation Space Manager"** with subtitle *"Safe storage and data loss protection"*.
 - **Card 1: Total App Footprint**:
   - Storage calculation: Displays formatted disk footprint (e.g. `1.8 GB`) or *"Calculating storage..."*.
   - Note: *"This includes your Termux Linux packages, AI configuration, and local SQLite data."*.
@@ -252,7 +252,7 @@ Opened from **Android Settings → Apps → AntiGem → Storage → "Manage spac
   - Note: *"Performs a complete wipe of all app data, removing Linux packages, accounts, and chats."*.
   - Button: **Wipe All App Data**.
   - Multi-Step Confirmation Sequence:
-    1. **"Confirm Full Reset"** dialog: *"Are you sure you want to factory reset AntiGem? This will permanently delete all installed Linux packages, workspaces, accounts, and chats."* Tap **Proceed to Confirmation** (or **Cancel**).
+    1. **"Confirm Full Reset"** dialog: *"Are you sure you want to factory reset YouTube Automation? This will permanently delete all installed Linux packages, workspaces, accounts, and chats."* Tap **Proceed to Confirmation** (or **Cancel**).
     2. **"Confirm Destruction"** dialog: *"To confirm and permanently wipe all app data and local Linux storage, type the confirmation phrase exactly as shown below: `iknowwhatiamdoing`"*.
     3. Type `iknowwhatiamdoing` into the input field.
     4. Button **Delete Everything** becomes active. Tapping it permanently wipes all user data and resets the app.
@@ -391,7 +391,7 @@ Enable or disable individual agent engines. If only one agent is selected, the t
 - **Sign In with Browser**: Generates a one-time code and provides **Copy code & open GitHub** (`github.com/login/device`).
 - **Use a personal access token instead**: Token input field supporting `ghp_…` or `github_pat_…` tokens.
 - **Account View**: Displays user avatar, login name, bio, **Open profile** button, and **Sign out** button.
-- **Repositories**: List of user repositories with **Search repositories**, **Reload repositories**, and **Show more**. Tapping the options icon on any repository opens: **Clone and open**, **Copy clone URL**, and **Open on GitHub**. *(Note: There is no "New repository" button in AntiGem; create new repos via Jarvis or by running `gh repo create` in the terminal).*
+- **Repositories**: List of user repositories with **Search repositories**, **Reload repositories**, and **Show more**. Tapping the options icon on any repository opens: **Clone and open**, **Copy clone URL**, and **Open on GitHub**. *(Note: There is no "New repository" button in YouTube Automation; create new repos via Jarvis or by running `gh repo create` in the terminal).*
 
 ---
 
@@ -403,7 +403,7 @@ Connects the terminal's built-in `adb` (Android Debug Bridge) command to this ph
 1. Tap **Install android-tools** (or **Repair ADB**) if adb is not ready.
 2. Tap **Open Wireless debugging** (or **Open About phone** to enable Developer Options by tapping Build number 7 times).
 3. Under Wireless Debugging, tap **Pair device with pairing code**.
-4. Tap **Pair manually instead** in AntiGem, enter the 6-digit **Code** and 5-digit **Port**, then tap **Pair**.
+4. Tap **Pair manually instead** in YouTube Automation, enter the 6-digit **Code** and 5-digit **Port**, then tap **Pair**.
 5. Once paired, enter the connection **Port** (or leave Auto) and tap **Connect**.
 6. Toggle **Reconnect automatically** to stay connected across Wi-Fi sessions.
 ### What to Expect:
@@ -415,14 +415,14 @@ Under **Devices**, your phone appears (e.g. `127.0.0.1:port device`). You or the
 *Subtitle: "Let AI agents see and control this phone"*
 ### What it is:
 Allows AI agents to interact with your phone's Android operating system (inspecting the accessibility UI hierarchy, tapping buttons, scrolling, and entering text) via the `android_automation_mcp` server.
-- **Service Name**: **AntiGem Android Automation**
+- **Service Name**: **YouTube Automation Android Automation**
 - **Status Indicator**:
   - **Not allowed**: Subtitle *"Grant the permissions below to use it"*.
   - **Allowed**: Subtitle *"Agents with the Android Automation MCP can control this phone"*.
   - **Not running**: Subtitle *"The service is on but Android hasn't started it. Turn it off and on again."*.
 ### Setup Steps:
 1. **1. Accessibility service** (Required):
-   - Tap **Open Accessibility**, find **AntiGem Android Automation**, and turn it on.
+   - Tap **Open Accessibility**, find **YouTube Automation Android Automation**, and turn it on.
    - Alternatively, if ADB is connected, tap **Turn on with ADB** to enable in one tap.
    - If already running, tap **Turn off in Accessibility** to disable.
    - *Switch greyed out, or "Restricted setting"?*: Android 13+ blocks accessibility for sideloaded APKs. Tap **Open App info**, tap the three dots (⋮) in the top-right corner, select **Allow restricted settings**, and then enable the service.
@@ -448,7 +448,7 @@ Allows AI agents to interact with your phone's Android operating system (inspect
 Bridges Android hardware capabilities (battery level, camera, clipboard, notifications, vibrate, location) to command-line shell scripts.
 ### Provider Options:
 1. **Built-in (Zero-setup)** (Default):
-   - Lightweight native handlers for clipboard, toast, torch, vibration, TTS, battery, volume, and notifications inside AntiGem without requiring an external companion app.
+   - Lightweight native handlers for clipboard, toast, torch, vibration, TTS, battery, volume, and notifications inside YouTube Automation without requiring an external companion app.
 2. **The external Termux:API app**:
    - Forwards commands to the standalone external Termux:API companion app.
    - *Requirement*: Requires the Shared UID build (`termuxBuild`). On a standalone build, this option is disabled with a requirement card.
@@ -462,7 +462,7 @@ Tap the built-in test buttons to test `termux-toast`, `termux-clipboard-get`, an
 ### What it is:
 Enables running graphical Linux desktop applications directly on your phone screen via **Linux desktop** powered by Termux:X11. *(Note: Needs the Shared UID build `termuxBuild` to run Termux:X11 at full speed).*
 ### Step-by-Step Setup:
-1. **Step 1: Termux:X11 app**: Tap **Download & install** to install AntiGem's own build of the Termux:X11 companion app. (You can also tap **Open the download page**).
+1. **Step 1: Termux:X11 app**: Tap **Download & install** to install YouTube Automation's own build of the Termux:X11 companion app. (You can also tap **Open the download page**).
 2. **Step 2: termux-x11 command**: Tap **Install termux-x11-nightly** (or companion package) to install the command that starts the X server.
 3. **Step 3: Desktop**: Select your desktop environment (e.g. **XFCE** or **LXQt**) and tap **Install XFCE** (or **Install LXQt**).
 4. **Step 4: Start the desktop**: If setup is complete, tap **Start XFCE**. (If incomplete, the app prompts *"Finish the steps above first."*). Once running, tap **Open desktop** to view or **Stop** to shut it down.
@@ -472,8 +472,8 @@ Enables running graphical Linux desktop applications directly on your phone scre
 ---
 
 ## 25. What's New (`CHANGELOG`)
-*Subtitle: "Every AntiGem version and what changed"*
-An interactive timeline of every release of AntiGem. Changes are organized by version cards with color-coded tags:
+*Subtitle: "Every YouTube Automation version and what changed"*
+An interactive timeline of every release of YouTube Automation. Changes are organized by version cards with color-coded tags:
 - 🟩 **NEW**: New features and capabilities.
 - 🟨 **FIXED**: Bug fixes and stability improvements.
 - 🟦 **IMPROVED**: Performance enhancements and UI polish.
@@ -509,4 +509,4 @@ An interactive timeline of every release of AntiGem. Changes are organized by ve
 
 ### ❌ Symptom: Download & Install Local Tools fails with "Storage full".
 - **What to check**: Check available phone storage in Android Settings.
-- **How to fix**: Open **Android Settings → Apps → AntiGem → Storage → "Manage space" → AntiGem Space Manager**, tap **Clear Temporary Cache**, and ensure you have at least 2 GB of free space before tapping Download & Install Local Tools.
+- **How to fix**: Open **Android Settings → Apps → YouTube Automation → Storage → "Manage space" → YouTube Automation Space Manager**, tap **Clear Temporary Cache**, and ensure you have at least 2 GB of free space before tapping Download & Install Local Tools.

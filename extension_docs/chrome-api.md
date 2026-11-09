@@ -1,6 +1,6 @@
 # Chrome API reference
 
-This reference includes every implemented public facade method and event, with stubs/rejections identified. AntiGem supplies these APIs to your worker and isolated content scripts; do not copy or import the app runtime to use them. Other `chrome.*` namespaces are absent.
+This reference includes every implemented public facade method and event, with stubs/rejections identified. YouTube Automation supplies these APIs to your worker and isolated content scripts; do not copy or import the app runtime to use them. Other `chrome.*` namespaces are absent.
 
 Unless stated synchronous, a method returns a Promise and also accepts a final callback. A callback form returns no Promise. On failure, Promises reject; callbacks receive `undefined` with `chrome.runtime.lastError.message` set **only during the callback**. API values and messages are JSON-serialized: do not pass functions, DOM objects, cycles or BigInts. `scripting.executeScript.func` is the explicit function-serialization exception. `chrome.antigem` methods use Promises only.
 
@@ -20,7 +20,7 @@ All events expose synchronous `addListener(fn)`, `removeListener(fn)`, `hasListe
 | `runtime.connect(extensionId, connectInfo?)` | Same extension only; no external communication. |
 | `runtime.reload()` | Schedules this worker's reload; current jobs/variables will be lost. |
 | `runtime.getPlatformInfo()` | `{os:"android",arch,nacl_arch}`. |
-| `runtime.getBrowserInfo()` | AntiGem metadata `{name,vendor,version,buildID}`; not Chromium version negotiation. |
+| `runtime.getBrowserInfo()` | YouTube Automation metadata `{name,vendor,version,buildID}`; not Chromium version negotiation. |
 | `runtime.getContexts(filter?)` | Current extension contexts `{contextId,contextType,tabId,frameId,documentUrl}[]`; filter is currently ignored. Context types include BACKGROUND, CONTENT and transient MCP. |
 | `runtime.openOptionsPage()` | Rejects: extension UI unsupported. |
 | `extension.getURL(path)` | Synchronous alias of runtime.getURL. |

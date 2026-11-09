@@ -11,7 +11,7 @@ if [ -z "${BASH_VERSION:-}" ]; then
 fi
 
 # ==============================================================================
-# antiGem IDE & AGY Projects Backup Packager
+# YouTube Automation IDE & AGY Projects Backup Packager
 # ==============================================================================
 set -euo pipefail
 
@@ -31,7 +31,7 @@ BACKUP_MODE="${2:-git}" # "git" (exclude ignored/node_modules) or "full" (raw ex
 shift 2 || true
 
 echo "================================================"
-echo "       antiGem Projects Backup Packager         "
+echo "       YouTube Automation Projects Backup Packager         "
 echo "================================================"
 echo "Output Archive : $OUTPUT_ZIP"
 echo "Backup Mode    : $BACKUP_MODE (git-aware / full)"

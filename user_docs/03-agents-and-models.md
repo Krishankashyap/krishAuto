@@ -1,6 +1,6 @@
 # 03 — AI Agents & Models
 
-AntiGem is unique because it is not tied to a single AI engine. It provides integrated access to three distinct coding agent systems: **Antigravity**, **Claude Code**, and **OpenCode**, along with live model selection, reasoning budget controls, and security approval levels.
+YouTube Automation is unique because it is not tied to a single AI engine. It provides integrated access to three distinct coding agent systems: **Antigravity**, **Claude Code**, and **OpenCode**, along with live model selection, reasoning budget controls, and security approval levels.
 
 ---
 
@@ -41,7 +41,7 @@ When starting a conversation or looking at the top bar, you will see the **Agent
 
 ## 🎛️ 3. How Models, Thinking, and Reasoning Effort Work
 
-Model lists are **never hardcoded** in AntiGem. They are fetched dynamically in real time from the active agent backend. Each agent handles thinking and reasoning effort in its own way:
+Model lists are **never hardcoded** in YouTube Automation. They are fetched dynamically in real time from the active agent backend. Each agent handles thinking and reasoning effort in its own way:
 
 ### A. Antigravity Models & Thinking Effort
 1. Tap the model selector pill in the top bar of the Chat screen.
@@ -82,10 +82,10 @@ Connect any external endpoint speaking the Anthropic Messages API (e.g. OpenRout
    - **Base URL**: The API root (e.g. `https://openrouter.ai/api`).
    - **API key**: Your secret key.
    - **Auth Mode**: Choose between **Bearer token** (`Authorization: Bearer <key>`) or **x-api-key header**.
-   - Tap **Apply & fetch** to test connectivity. AntiGem will ping the endpoint and display **Connected · N ms** (or **Connection failed** with the HTTP error code).
+   - Tap **Apply & fetch** to test connectivity. YouTube Automation will ping the endpoint and display **Connected · N ms** (or **Connection failed** with the HTTP error code).
 4. Tap **Choose from the provider's models** or tap **Add model** to specify model IDs.
 5. In **Advanced**, optionally configure **Context window (tokens)** and a **Background model (optional)** for generating chat titles and summaries.
-6. **Switching Providers in Active Chats (`ClaudeProviderSwitchDialog`)**: If you switch an active conversation between Claude's official account and a custom provider, AntiGem warns you with *"⚠️ Switch provider in this chat?"*. Because switching restarts Claude Code and resends the entire conversation without cache (incurring extra costs), AntiGem gives you the choice to **Start a new chat with it**, **Cancel**, or wait 3 seconds and choose **Switch anyway**.
+6. **Switching Providers in Active Chats (`ClaudeProviderSwitchDialog`)**: If you switch an active conversation between Claude's official account and a custom provider, YouTube Automation warns you with *"⚠️ Switch provider in this chat?"*. Because switching restarts Claude Code and resends the entire conversation without cache (incurring extra costs), YouTube Automation gives you the choice to **Start a new chat with it**, **Cancel**, or wait 3 seconds and choose **Switch anyway**.
 
 ### 2. OpenCode Custom Providers (`Settings → OpenCode → Custom providers`)
 Connect OpenAI-compatible endpoints or local servers (such as Ollama):
@@ -109,7 +109,7 @@ Each agent authenticates separately:
 
 ## 🛡️ 6. Permission Modes & Approvals
 
-AI agents need to run terminal commands, create files, and inspect code. To protect your phone, AntiGem provides comprehensive security policies and interactive approval cards:
+AI agents need to run terminal commands, create files, and inspect code. To protect your phone, YouTube Automation provides comprehensive security policies and interactive approval cards:
 
 ### Global Security & Policies (Settings → Commands & Permissions)
 *Subtitle: "Controls terminal command execution and file access outside working directory."*

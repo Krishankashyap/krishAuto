@@ -72,7 +72,7 @@ object AgyOkHttpClient {
                 }
 
                 val requestBuilder = chain.request().newBuilder()
-                    .header("User-Agent", "antiGem-Android-Native")
+                    .header("User-Agent", "YouTubeAutomation-Android-Native")
                     .header("X-Grpc-Web", "1")
                     .header(AuthPreferences.currentFramedHeader, token.ifBlank { "true" })
                 AuthPreferences.edgeHeader()?.let { (n, v) -> requestBuilder.header(n, v) }

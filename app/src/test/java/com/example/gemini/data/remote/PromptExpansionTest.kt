@@ -37,7 +37,7 @@ class PromptExpansionTest {
         plugin("yt", tools = 2)
         val notes = plugin("notes", tools = 0)
         val sent = PromptExpansion.expand("/plu:yt:upload")
-        assertTrue(sent.contains("depends on another custom AntiGem plugin"))
+        assertTrue(sent.contains("depends on another custom YouTube Automation plugin"))
         assertTrue(sent.contains("notes (${File(notes, "skills").absolutePath}/)"))
         assertFalse(PromptExpansion.expand("/plu:yt").substringAfter("Other installed plugins with skills:").contains("yt ("))
     }

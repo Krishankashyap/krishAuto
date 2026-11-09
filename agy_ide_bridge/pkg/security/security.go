@@ -358,7 +358,7 @@ func AuthMiddleware(token string, next http.Handler) http.Handler {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error":"unauthorized","message":"Missing or invalid AntiGem security token header"}`))
+		w.Write([]byte(`{"error":"unauthorized","message":"Missing or invalid YouTube Automation security token header"}`))
 	})
 }
 

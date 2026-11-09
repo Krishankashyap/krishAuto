@@ -35,7 +35,7 @@ object ConversationExportHelper {
     }
 
     /**
-     * Exports a conversation by ID, saving it to Downloads/AntiGem/Exports and opening it.
+     * Exports a conversation by ID, saving it to Downloads/YouTube Automation/Exports and opening it.
      */
     suspend fun exportConversation(
         context: Context,
@@ -79,14 +79,14 @@ object ConversationExportHelper {
                 ExportFormat.HTML -> generateHtml(title, conversationId, messages)
             }
 
-            // Save to Downloads/AntiGem/Exports
-            val (savedUri, mimeType, savedFileName) = saveToAntiGemExports(context, fileName, content, format.mimeType)
+            // Save to Downloads/YouTube Automation/Exports
+            val (savedUri, mimeType, savedFileName) = saveToYouTube AutomationExports(context, fileName, content, format.mimeType)
 
             withContext(Dispatchers.Main) {
                 if (savedUri != null) {
                     if (snackbarHostState != null) {
                         val result = snackbarHostState.showSnackbar(
-                            message = "$savedFileName saved to Downloads/AntiGem/Exports",
+                            message = "$savedFileName saved to Downloads/YouTube Automation/Exports",
                             actionLabel = "Open",
                             duration = SnackbarDuration.Short
                         )
@@ -94,7 +94,7 @@ object ConversationExportHelper {
                             openFile(context, savedUri, mimeType)
                         }
                     } else {
-                        AppToastHelper.showToast("$savedFileName saved to Downloads/AntiGem/Exports", ChatToastType.SUCCESS)
+                        AppToastHelper.showToast("$savedFileName saved to Downloads/YouTube Automation/Exports", ChatToastType.SUCCESS)
                         openFile(context, savedUri, mimeType)
                     }
                 } else {
@@ -128,7 +128,7 @@ object ConversationExportHelper {
         }
     }
 
-    private fun saveToAntiGemExports(
+    private fun saveToYouTube AutomationExports(
         context: Context,
         fileName: String,
         content: String,
@@ -140,7 +140,7 @@ object ConversationExportHelper {
                 val contentValues = ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                     put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/AntiGem/Exports")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/YouTube Automation/Exports")
                     put(MediaStore.MediaColumns.IS_PENDING, 1)
                 }
 
@@ -159,7 +159,7 @@ object ConversationExportHelper {
 
                 return Triple(itemUri, mimeType, fileName)
             } else {
-                val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "AntiGem/Exports")
+                val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "YouTube Automation/Exports")
                 if (!downloadsDir.exists()) downloadsDir.mkdirs()
                 val targetFile = File(downloadsDir, fileName)
                 targetFile.writeBytes(bytes)
@@ -172,7 +172,7 @@ object ConversationExportHelper {
                 return Triple(fileUri, mimeType, fileName)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed saving to AntiGem/Exports: ${e.message}", e)
+            Log.e(TAG, "Failed saving to YouTube Automation/Exports: ${e.message}", e)
             return Triple(null, mimeType, fileName)
         }
     }

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Google Flow Extension",
   "version": "2.1.0",
-  "description": "Google Flow MCP workflows, fast verified batch generation and Chrome Flow tool compatibility for AntiGem WebView.",
+  "description": "Google Flow MCP workflows, fast verified batch generation and Chrome Flow tool compatibility for YouTube Automation WebView.",
   "permissions": [
     "tabs",
     "scripting",
@@ -18,7 +18,7 @@
   "mcp_tools": [
     {
       "name": "flow_status",
-      "description": "Check Google Flow: opens the Flow tab if needed and reports logged_in (with the account and remaining credits), the open project, current composer settings and the job queue. If logged_in is false, tell the user to sign in to Flow in the AntiGem browser and stop.",
+      "description": "Check Google Flow: opens the Flow tab if needed and reports logged_in (with the account and remaining credits), the open project, current composer settings and the job queue. If logged_in is false, tell the user to sign in to Flow in the YouTube Automation browser and stop.",
       "inputSchema": {
         "type": "object",
         "properties": {}
@@ -2190,7 +2190,7 @@
     },
     {
       "name": "deepx_status",
-      "description": "Chrome Flow MCP compatibility alias for flow_status. Check Google Flow: opens the Flow tab if needed and reports logged_in (with the account and remaining credits), the open project, current composer settings and the job queue. If logged_in is false, tell the user to sign in to Flow in the AntiGem browser and stop.",
+      "description": "Chrome Flow MCP compatibility alias for flow_status. Check Google Flow: opens the Flow tab if needed and reports logged_in (with the account and remaining credits), the open project, current composer settings and the job queue. If logged_in is false, tell the user to sign in to Flow in the YouTube Automation browser and stop.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "properties": {

@@ -1,6 +1,6 @@
 # 04 — Projects & Code Editor (IDE)
 
-The **IDE (Integrated Development Environment)** in AntiGem provides a mobile-first code editor, project file manager, visual Git source control client, image/SVG previewer, and app runner directly on your Android phone.
+The **IDE (Integrated Development Environment)** in YouTube Automation provides a mobile-first code editor, project file manager, visual Git source control client, image/SVG previewer, and app runner directly on your Android phone.
 
 ---
 
@@ -192,7 +192,7 @@ Tapping any changed file in Git source control opens the Unified Diff Viewer:
 ## 🛠️ Troubleshooting IDE Issues
 
 ### ❌ Symptom: The editor says "File not found" or will not open.
-- **What to check**: Check if the file was deleted or renamed outside of AntiGem.
+- **What to check**: Check if the file was deleted or renamed outside of YouTube Automation.
 - **How to fix**: Open the sidebar (**Toggle Sidebar**) and tap **Refresh** (🔄) to reload the project file tree.
 
 ### ❌ Symptom: Changes made in the editor did not save.

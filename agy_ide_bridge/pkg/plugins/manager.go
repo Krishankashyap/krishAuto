@@ -1,4 +1,4 @@
-// Package plugins manages custom AntiGem plugins (browser extensions with MCP tools and/or skills) on disk:
+// Package plugins manages custom YouTube Automation plugins (browser extensions with MCP tools and/or skills) on disk:
 // listing, installing from ZIPs or GitHub repositories, updating, removing and exporting them. The app's
 // Node extension host loads them; the app tells it to load or unload after each change made here.
 package plugins

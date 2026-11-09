@@ -1,6 +1,6 @@
 # 05 — Terminal & Linux Shell
 
-AntiGem includes a full Linux command-line terminal directly on your Android phone. It is powered by Termux and an isolated Linux container, providing an authentic shell environment with access to standard Unix utilities, package managers, and programming languages.
+YouTube Automation includes a full Linux command-line terminal directly on your Android phone. It is powered by Termux and an isolated Linux container, providing an authentic shell environment with access to standard Unix utilities, package managers, and programming languages.
 
 ---
 
@@ -14,7 +14,7 @@ To open the terminal at any moment:
 
 ## 🖥️ 2. Virtual Key Rows & Modifier Keys
 
-Because mobile soft keyboards lack physical control keys, AntiGem provides an extra toolbar of dedicated terminal keys directly above your on-screen keyboard, laid out in **exactly two rows**:
+Because mobile soft keyboards lack physical control keys, YouTube Automation provides an extra toolbar of dedicated terminal keys directly above your on-screen keyboard, laid out in **exactly two rows**:
 
 ### Row 1:
 - **ESC**: Sends Escape (exits `vim` insert mode, closes menus, or interrupts search prompts).
@@ -42,10 +42,10 @@ Because mobile soft keyboards lack physical control keys, AntiGem provides an ex
 
 ## 📑 3. Managing Sessions & Tabs (`tmux`)
 
-AntiGem manages terminal sessions using **tmux**, ensuring long-running builds, servers, or scripts do not terminate when you switch workspaces or lock your phone.
+YouTube Automation manages terminal sessions using **tmux**, ensuring long-running builds, servers, or scripts do not terminate when you switch workspaces or lock your phone.
 
 ### The Draggable Floating Tab Pill:
-Instead of a static tab bar, AntiGem uses a compact, floating pill anchored at the top right of the terminal screen:
+Instead of a static tab bar, YouTube Automation uses a compact, floating pill anchored at the top right of the terminal screen:
 - **Dragging**: You can touch and drag the pill anywhere on your screen so it never covers the text you are reading.
 - **Active Session Indicator**: Displays a status dot (🟢 green for an active running session, 🔴 red for an exited session) and the active session name.
 - **Header Actions**:
@@ -106,7 +106,7 @@ Under **Settings → Terminal & Shell**, you can configure whether the shell exe
 ### C. Standalone Launcher Icon:
 - **Separate Terminal App Icon**: Toggle to show an independent icon in your Android launcher.
 - **Launcher Icon & Name Style**:
-  - **AntiTerm**: Modern icon matching the AntiGem aesthetic.
+  - **AntiTerm**: Modern icon matching the YouTube Automation aesthetic.
   - **Termux**: Classic black `>_` prompt icon and name.
 
 ---
@@ -114,7 +114,7 @@ Under **Settings → Terminal & Shell**, you can configure whether the shell exe
 ## 🛠️ Troubleshooting Terminal Issues
 
 ### ❌ Symptom: My terminal tab disappeared or reopened with my old session.
-- **Explanation**: AntiGem uses persistent **tmux** sessions. When you reopen the terminal, it connects to existing background sessions (*"Restoring active terminal sessions..."*). Your running programs, command history, and shell state are preserved.
+- **Explanation**: YouTube Automation uses persistent **tmux** sessions. When you reopen the terminal, it connects to existing background sessions (*"Restoring active terminal sessions..."*). Your running programs, command history, and shell state are preserved.
 
 ### ❌ Symptom: I cannot type inside the terminal.
 - **How to fix**: Tap anywhere on the terminal screen to focus the view and trigger your on-screen keyboard. Use the virtual key rows for terminal-specific keys like `CTRL`, `ALT`, `ESC`, and arrows.

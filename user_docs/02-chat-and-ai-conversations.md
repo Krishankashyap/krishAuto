@@ -13,7 +13,7 @@ When you are on the Chat screen, you will see:
    - **Choose project**: Tap the folder icon (**Choose project**) to open the workspace folder browser (**Choose the project folder**). This tells the AI which folder on your phone or server contains your code.
    - **Agent Selector**: A pill at the top allowing you to switch between **Antigravity**, **Claude Code**, or **OpenCode**.
    - **Model Selector**: Displays the currently selected model. Tapping it opens the Model Selector bottom sheet with live quotas and thinking effort levels.
-   - **Minimize to Bubble**: Tap the bubble icon in the top bar to shrink AntiGem into a floating Android overlay window (`FloatingChatActivity`), letting you chat while using other apps.
+   - **Minimize to Bubble**: Tap the bubble icon in the top bar to shrink YouTube Automation into a floating Android overlay window (`FloatingChatActivity`), letting you chat while using other apps.
    - **Chat Telemetry & Tokens**: Tap the info / telemetry icon to view token usage, latency, and context window limits.
 2. **System Status Banners**:
    - **Antigravity Disconnected**: Displays at the top if the connection to the AGY Hub is lost, alongside an automatic reconnection indicator (*"Connecting to Antigravity..."*).
@@ -159,7 +159,7 @@ Whenever you type a forward slash (`/`) into the chat input bar, an auto-complet
 ### ❌ Symptom: Live dictation hears nothing or shows "No speech recognized".
 - **What to check**: Check microphone permission and ensure dictation is not paused.
 - **How to fix**:
-  1. Grant microphone permission in Android **Settings → Apps → AntiGem → Permissions → Microphone**.
+  1. Grant microphone permission in Android **Settings → Apps → YouTube Automation → Permissions → Microphone**.
   2. If the banner shows *"Dictation paused (tap resume to speak)"*, tap the **Resume** button.
   3. Speak close to the phone microphone and avoid noisy background environments.
 

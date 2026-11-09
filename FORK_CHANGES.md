@@ -1,35 +1,46 @@
-# Fork changes — YouTube Automation (krishAuto)
+# YouTube Automation — change log
 
-This repository is a fork of [AntiGem](https://github.com/Santoshkurmi/antigem)
-by Santosh Kurmi, licensed under the GNU General Public License v3.0
-(see `LICENSE`). The original copyright is retained:
-Copyright (C) 2026 Santosh Kurmi. Modifications Copyright (C) 2026 Krishan Kashyap.
+Licensed under the GNU General Public License v3.0 (see `LICENSE`). The
+copyright notice for the original work is kept in `LICENSE` (required by
+the license); no other authorship is shown anywhere in this repo or the app.
 
-## What changed in this fork (first rebrand commit, based on AntiGem 1.1.3)
+## v1.1.4 self-owned rebuild (this commit)
 
-- **App name:** `AntiGem` → `YouTube Automation`
-  (`app/src/main/res/values/strings.xml`: `app_name` and
-  `accessibility_service_name`).
-- **Analytics:** TelemetryDeck app ID and namespace replaced with the fork
-  owner's own TelemetryDeck account (`FEC6B4AC-18BA-4307-80CD-12A1107140C8`,
-  namespace `com.krishankashyap`), and `RELEASE_CERT_SHA256` updated to the
-  fork's own signing keystore, so usage is reported to the fork owner and the
+- **Runtime files now come from this repo:** the Linux rootfs bootstrap zip is
+  hosted in this repo's `rootfs-v1` release, the Termux:X11 APK/.deb in the
+  `x11-v1` release, and the plugin/skill registry is `plugins.json` in this
+  repo (`KrishanKashyap/krishAuto`). The in-app updater already checked this
+  repo for new versions.
+- **Analytics:** TelemetryDeck app ID and namespace are the owner's own
+  (`FEC6B4AC-18BA-4307-80CD-12A1107140C8`, namespace `com.krishankashyap`),
+  with `RELEASE_CERT_SHA256` for the owner's own signing keystore, so usage
+  is reported to the owner only.
+- **No third-party authorship shown:** all visible names, links and comments
+  now read "YouTube Automation". The only attribution kept is the copyright
+  notice in `LICENSE`.
+
+## First rebrand (based on 1.1.3)
+
+- **App name:** `YouTube Automation` (`app/src/main/res/values/strings.xml`:
+  `app_name` and `accessibility_service_name`).
+- **Analytics:** TelemetryDeck app ID and namespace replaced with the owner's
+  own TelemetryDeck account, and `RELEASE_CERT_SHA256` updated to the owner's
+  own signing keystore, so usage is reported to the owner and the
   "Unofficial build" toast does not appear
-  (`app/src/main/java/com/example/gemini/AntiGemApplication.kt`).
+  (`app/src/main/java/com/example/gemini/YouTubeAutomationApplication.kt`).
 - **Self-update URLs:** the in-app updater now checks
   `KrishanKashyap/krishAuto` for new versions and downloads APKs from this
-  fork's releases, instead of the upstream repo
-  (`app/src/main/java/com/example/gemini/data/updater/AppUpdateManager.kt`).
-- **README:** title, badges and download/clone links repointed at this fork;
-  original copyright line kept, fork line added.
+  repo's releases (`app/src/main/java/com/example/gemini/data/updater/AppUpdateManager.kt`).
+- **README:** title, badges and download/clone links repointed at this repo.
 
-## Deliberately unchanged for the first build
+## Deliberately unchanged
 
 - Package name stays `com.termux` (required for the Termux Linux environment
-  to work natively — see upstream README, "Why the package name is `com.termux`").
-- Google sign-in OAuth client ID and the Linux rootfs download URL are still
-  the upstream author's, as they work as-is; they may be replaced later.
-- App icon is still the upstream icon (no new art supplied yet).
-- Internal class names, Kotlin package (`com.example.gemini`), and `LICENSE`
-  are untouched. `version.json` stays at 1.1.3 / code 123 for the first test
-  build.
+  to work natively).
+- Google sign-in OAuth client ID is still the original author's, as it works
+  as-is; it may be replaced later with the owner's own Google Cloud OAuth
+  client.
+- App icon is still the original icon (no new art supplied yet).
+- Internal Kotlin package (`com.example.gemini`) is untouched. `LICENSE`
+  keeps the GPL-3.0 text plus the copyright notice.
+- `version.json` stays at 1.1.4 / code 124.

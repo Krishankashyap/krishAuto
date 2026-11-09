@@ -92,7 +92,7 @@ claude \
 - **stdio** = 3 pipes. stderr carries only debug logs; drain it, but don't parse it.
 - **env:** the extension passes the normal environment plus `claudeCode.environmentVariables`.
   `CLAUDE_CODE_ENTRYPOINT=claude-vscode` marks the session as a VS Code one (`system:init.startup_timing.entrypoint`).
-  Use your own value, e.g. `antigem`.
+  Use your own value, e.g. `krishAuto`.
 - **Close:** close stdin (graceful, after the current turn), or `SIGTERM`.
 
 ### 2.2 Flags

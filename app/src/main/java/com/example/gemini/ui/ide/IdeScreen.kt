@@ -446,7 +446,7 @@ fun IdeScreen(
                     },
                     title = {
                         Text(
-                            text = activeProject?.name ?: "antiGem IDE",
+                            text = activeProject?.name ?: "YouTube Automation IDE",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,

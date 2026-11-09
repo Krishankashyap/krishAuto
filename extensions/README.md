@@ -1,4 +1,4 @@
-# AntiGem browser extensions
+# YouTube Automation browser extensions
 
 Place an unpacked extension at `~/extensions/<folder>/manifest.json`. Extensions provide MCP tools through one app-managed Node host. Workers and content scripts can use the supported Chrome APIs; extension popups, options pages, side panels and toolbar icons are not supported.
 
@@ -33,7 +33,7 @@ The original `flow_mcp/` source remains as a compatibility reference and worker 
 - The WebView engine's CDP commands through `chrome.debugger`, including remote objects and file inputs. Unsupported engine commands reject instead of reporting success.
 - Permissions and host-pattern checks for page access; extension resource paths are confined to the extension directory.
 
-`chrome.antigem` contains explicit AntiGem additions for automation input locking, local files, downloads and extracting frames. These require the `antigemFiles` permission; ordinary Chrome extensions do not need them.
+`chrome.antigem` contains explicit YouTube Automation additions for automation input locking, local files, downloads and extracting frames. These require the `antigemFiles` permission; ordinary Chrome extensions do not need them.
 
 ## Limits and validation
 

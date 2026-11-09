@@ -11,7 +11,7 @@ if [ -z "${BASH_VERSION:-}" ]; then
 fi
 
 # ==============================================================================
-# antiGem IDE & AGY Projects Restorer
+# YouTube Automation IDE & AGY Projects Restorer
 # ==============================================================================
 set -euo pipefail
 
@@ -26,7 +26,7 @@ CONFLICT_STRATEGY="${2:-bak}" # "bak" (move existing to .bak.<timestamp>) or "ov
 CUSTOM_RESTORE_DIR="${3:-}"
 
 echo "================================================"
-echo "       antiGem Projects Archive Restorer        "
+echo "       YouTube Automation Projects Archive Restorer        "
 echo "================================================"
 echo "Input Archive     : ${INPUT_ZIP:-<none>}"
 echo "Conflict Strategy : $CONFLICT_STRATEGY (bak / overwrite)"

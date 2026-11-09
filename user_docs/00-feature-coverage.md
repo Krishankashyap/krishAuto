@@ -1,6 +1,6 @@
 # 00 — Feature Coverage Matrix & Verification Proof
 
-This document provides exhaustive, code-verified proof that every UI component, screen folder, settings section, and assistant page in AntiGem is documented for users without exception.
+This document provides exhaustive, code-verified proof that every UI component, screen folder, settings section, and assistant page in YouTube Automation is documented for users without exception.
 
 ## 1. Documentation File to Source File Audit Matrix
 
@@ -56,10 +56,10 @@ The settings dialog dynamically filters visible rows based on build flavor, inst
 
 | Enum Name | Title & Subtitle in Code | Visibility Condition | Documented In | Section Reference |
 | :--- | :--- | :--- | :--- | :--- |
-| `MAIN` | **Settings & Preferences** (*"Configure your AntiGem experience"*) | Always visible | [13-settings-reference.md](13-settings-reference.md) | Overview |
+| `MAIN` | **Settings & Preferences** (*"Configure your YouTube Automation experience"*) | Always visible | [13-settings-reference.md](13-settings-reference.md) | Overview |
 | `APPEARANCE` | **Appearance & Theme** (*"Theme, dark mode, and chat font scaling"*) | Always visible | [13-settings-reference.md](13-settings-reference.md) | Section 1 |
 | `SERVERS` | **Servers & Connectivity** (*"Configure AGY Hub and IDE Bridge endpoints"*) | Always visible | [12-server-mode-and-remote-access.md](12-server-mode-and-remote-access.md) | Whole document & Section 2 |
-| `WEBVIEW_EXTENSIONS` | **Custom AntiGem Plugins** (*"Install and manage plugins: MCP tools and skills"*) | Always visible | [10-plugins-and-skills.md](10-plugins-and-skills.md) | Section 2 & Section 4 |
+| `WEBVIEW_EXTENSIONS` | **Custom YouTube Automation Plugins** (*"Install and manage plugins: MCP tools and skills"*) | Always visible | [10-plugins-and-skills.md](10-plugins-and-skills.md) | Section 2 & Section 4 |
 | `SLASH_COMMANDS` | **Slash Commands** (*"Your own / commands and what they expand to"*) | Always visible | [10-plugins-and-skills.md](10-plugins-and-skills.md) | Section 3 & Section 5 |
 | `MCP` | **MCP Servers** (*"Model Context Protocol tools & integrations"*) | Always visible | [09-mcp-servers-and-tools.md](09-mcp-servers-and-tools.md) | Whole document & Section 6 |
 | `SKILLS_PLUGINS` | **Skills & Plugins** (*"Agent capabilities, Google plugins, and extensions"*) | Always visible | [10-plugins-and-skills.md](10-plugins-and-skills.md) | Section 1 & Section 7 |
@@ -81,10 +81,10 @@ The settings dialog dynamically filters visible rows based on build flavor, inst
 | `TERMUX_SUPPORT` | **Termux Support** (*"Termux:API and the X11 desktop"*) | **Conditional**: Visible only in the `com.termux` package build. Displays `"Standalone"` warning if not Shared UID. | [13-settings-reference.md](13-settings-reference.md) | Section 22 |
 | `TERMUX_API` | **Termux:API** (*"How termux-api commands are handled"*) | Accessible from Termux Support (external app requires Shared UID) | [13-settings-reference.md](13-settings-reference.md) | Section 23 |
 | `X11_DESKTOP` | **X11 Desktop** (*"Linux desktop apps with Termux:X11"*) | Accessible from Termux Support (requires Shared UID for full speed) | [13-settings-reference.md](13-settings-reference.md) | Section 24 |
-| `CHANGELOG` | **What's new** (*"Every AntiGem version and what changed"*) | Always visible | [13-settings-reference.md](13-settings-reference.md) | Section 25 |
+| `CHANGELOG` | **What's new** (*"Every YouTube Automation version and what changed"*) | Always visible | [13-settings-reference.md](13-settings-reference.md) | Section 25 |
 | `ABOUT` | **About & Info** (*"App version, package details, and bridge export"*) | Always visible | [13-settings-reference.md](13-settings-reference.md) | Section 26 |
 
-*(Note on `Manage space`: The AntiGem Space Manager (`ManageSpaceActivity.kt`) is a dedicated system activity accessed via Android Settings → Apps → AntiGem → Storage → Manage space. It is not an enum in `SettingsSection`, but is a real app screen fully documented in [13-settings-reference.md](13-settings-reference.md) and [14-troubleshooting-and-diagnostics.md](14-troubleshooting-and-diagnostics.md)).*
+*(Note on `Manage space`: The YouTube Automation Space Manager (`ManageSpaceActivity.kt`) is a dedicated system activity accessed via Android Settings → Apps → YouTube Automation → Storage → Manage space. It is not an enum in `SettingsSection`, but is a real app screen fully documented in [13-settings-reference.md](13-settings-reference.md) and [14-troubleshooting-and-diagnostics.md](14-troubleshooting-and-diagnostics.md)).*
 
 *(Note on `UTILITIES`: The `UTILITIES` enum in code does not appear in the settings menu because `utilityRows()` returns empty; its former sub-tools—GitHub, ADB Connect, and Android Automation—now each have their own independent, top-level settings rows).*
 

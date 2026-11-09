@@ -48,13 +48,13 @@ object PluginVersions {
 }
 
 /**
- * The user's plugin repositories and what each offers. Listing (from a repo's `antigem-plugins.json`, or its
+ * The user's plugin repositories and what each offers. Listing (from a repo's `plugins.json`, or its
  * top-level folders with a manifest.json) and installing a single folder are done by the IDE bridge.
  */
 object PluginRepositories {
-    const val INDEX = "antigem-plugins.json"
+    const val INDEX = "plugins.json"
     private const val PREFS = "plugin_repositories"
-    const val DEFAULT_REPO = "dipeshkrydv/antigem_plugins"
+    const val DEFAULT_REPO = "KrishanKashyap/krishAuto"
     private const val DEFAULT_REPO_ADDED = "default_repo_added"
     private val NAME = "[A-Za-z0-9_.-]+"
 

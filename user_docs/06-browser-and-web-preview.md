@@ -1,6 +1,6 @@
 # 06 — Built-in Browser & Web Preview
 
-AntiGem includes an integrated web browser designed specifically for testing websites, web apps, and APIs you build with the AI, without needing to switch back and forth to an external browser like Chrome.
+YouTube Automation includes an integrated web browser designed specifically for testing websites, web apps, and APIs you build with the AI, without needing to switch back and forth to an external browser like Chrome.
 
 ---
 
@@ -99,7 +99,7 @@ Tapping **More options** (three dots) opens the browser menu:
 
 ## 🤖 5. AI Browser Automation (`Controlled by AI`)
 
-AntiGem allows your AI agents to see, interact with, and test web pages directly through the Browser MCP tools:
+YouTube Automation allows your AI agents to see, interact with, and test web pages directly through the Browser MCP tools:
 - **Status Overlay Banners**: When an agent takes over the browser, a floating status pill appears at the top:
   - **"Controlled by AI"**: Displayed while the agent is connected, alongside an **"Unlock"** button that temporarily releases touch blocking and hands control back to you.
   - **"AI is working…"**: Displayed while the agent is actively navigating, clicking elements, typing input, or running assertions.
@@ -113,7 +113,7 @@ AntiGem allows your AI agents to see, interact with, and test web pages directly
 
 ## ⚠️ 6. Browser Error Cards & Diagnostics
 
-When a page fails to load, AntiGem renders a dedicated diagnostic error card:
+When a page fails to load, YouTube Automation renders a dedicated diagnostic error card:
 
 - **"Page Loading Stalled"**:
   - Message: *"The page is taking unusually long to respond (timeout > 15s). The local server or remote site might be unresponsive."*

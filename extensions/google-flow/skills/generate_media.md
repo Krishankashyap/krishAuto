@@ -9,7 +9,7 @@ Use the `flow_*` tools (the `deepx_*` tools are older aliases of the same featur
 
 ## Before generating
 
-1. Call `flow_status`. If `logged_in` is false, tell the user to sign in to Flow in the AntiGem browser and stop.
+1. Call `flow_status`. If `logged_in` is false, tell the user to sign in to Flow in the YouTube Automation browser and stop.
 2. Generation goes into the project open in the Flow tab. Use `flow_list_projects` / `flow_open_project`, or `new_project: true` on a generate call, if the user wants a specific or fresh project.
 3. `flow_get_options` lists the valid models, aspect ratios, durations and resolutions.
 

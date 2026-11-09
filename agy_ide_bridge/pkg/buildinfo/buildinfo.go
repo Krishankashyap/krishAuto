@@ -1,6 +1,6 @@
 // Package buildinfo holds the version of this bridge.
 //
-// The version is the version of the AntiGem app it was built with. It comes from version.json (the app's own
+// The version is the version of the YouTube Automation app it was built with. It comes from version.json (the app's own
 // version file): the app's Gradle build copies /version.json into this folder on every build, so the two cannot
 // drift apart, and `go build` needs no extra flags. A build can still override it with
 // -ldflags "-X gemini-server/pkg/buildinfo.Override=1.2.3".

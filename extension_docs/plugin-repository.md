@@ -1,12 +1,12 @@
-# Host your own AntiGem plugin repository
+# Host your own YouTube Automation plugin repository
 
-A plugin repository is a public GitHub repository with one folder per plugin. Anyone can add it in **Settings → Custom AntiGem Plugins → Repositories** to browse its plugins, install them and get updates. The app downloads only the folder of the plugin being installed, never the whole repository.
+A plugin repository is a public GitHub repository with one folder per plugin. Anyone can add it in **Settings → Custom YouTube Automation Plugins → Repositories** to browse its plugins, install them and get updates. The app downloads only the folder of the plugin being installed, never the whole repository.
 
 ## Repository layout
 
 ```
 my-plugins/                    ← repository root
-  antigem-plugins.json         ← index (recommended)
+  plugins.json         ← index (recommended)
   youtube/                     ← one plugin per folder
     manifest.json
     worker.js
@@ -21,7 +21,7 @@ my-plugins/                    ← repository root
 
 Each plugin folder is exactly what you would otherwise ZIP: `manifest.json` at its top, plus a worker, `skills/`, or both. See [lifecycle.md](lifecycle.md) and [skills.md](skills.md).
 
-## The index: `antigem-plugins.json`
+## The index: `plugins.json`
 
 ```json
 {
@@ -55,7 +55,7 @@ With `id` and `version` in the index, the app shows the whole list and update st
 
 ### Without an index
 
-If the repository has no `antigem-plugins.json`, every top-level folder that contains a `manifest.json` is listed as a plugin, and each manifest is read for its name, version and icon. This needs a GitHub API call that is limited to 60 per hour per network, so an index is more reliable.
+If the repository has no `plugins.json`, every top-level folder that contains a `manifest.json` is listed as a plugin, and each manifest is read for its name, version and icon. This needs a GitHub API call that is limited to 60 per hour per network, so an index is more reliable.
 
 ## Icons
 
@@ -93,5 +93,5 @@ Installs remember which repository and folder they came from, so the plugin card
 
 1. Change the plugin's files.
 2. Raise `version` in its `manifest.json` (for example `1.2.0` → `1.3.0`).
-3. Raise the same `version` in `antigem-plugins.json`.
+3. Raise the same `version` in `plugins.json`.
 4. Commit and push to the branch people added. Their app shows the update the next time it checks.

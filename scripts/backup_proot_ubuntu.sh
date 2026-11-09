@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# AntiGem Ubuntu (PRoot) Rootfs Packager - run INSIDE the Ubuntu container
+# YouTube Automation Ubuntu (PRoot) Rootfs Packager - run INSIDE the Ubuntu container
 # Entries are stored relative to the rootfs root (etc/, usr/, root/, ...).
 # ==============================================================================
 set -euo pipefail

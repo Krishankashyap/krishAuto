@@ -2,8 +2,6 @@
 
 # YouTube Automation
 
-> Fork of [AntiGem](https://github.com/Santoshkurmi/antigem) by Santosh Kurmi, rebranded as YouTube Automation. See [FORK_CHANGES.md](FORK_CHANGES.md) for what changed.
-
 **An AI coding workspace for Android: Antigravity, Claude Code and OpenCode agents, a real Linux terminal, a code editor and a browser the agent can control, all in one app.**
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://developer.android.com/jetpack/compose)
@@ -38,7 +36,7 @@
 
 ## What it is
 
-AntiGem runs three coding agents on your phone:
+YouTube Automation runs three coding agents on your phone:
 
 - **Antigravity (`agy`)**: the app talks to the `agy` language server directly over gRPC.
 - **Claude Code**: Anthropic's official `claude` CLI runs inside the app's Linux environment, and the app talks to it over its stream-json protocol, with one CLI process per chat.
@@ -100,13 +98,13 @@ Each one is a one-tap preset in **Settings → MCP Servers**, for every agent.
 | **Terminal** | Create terminal sessions, send commands, read output, kill processes, and change the terminal's theme and font. |
 | **Android** | Read the screen's UI tree, tap, swipe, scroll, type, press keys, take screenshots, launch and list apps, open intents, and (with ADB) install, uninstall or force-stop apps and run `adb shell`. |
 | **Notes & To-dos** | List, read, create, edit and delete your notes and to-do items. |
-| **Custom Plugin** | Use the tools of any installed AntiGem plugin. |
-| **Plugin Developer** | Create, install, test and debug AntiGem plugins from the chat. |
+| **Custom Plugin** | Use the tools of any installed YouTube Automation plugin. |
+| **Plugin Developer** | Create, install, test and debug YouTube Automation plugins from the chat. |
 | **Jarvis** | Control the app for the Jarvis voice mode: speak and ask, run and watch tasks, chats, models, settings, approvals, the IDE and more ([docs/jarvis.md](docs/jarvis.md)). |
 | **Theme** | List, switch, create, edit, import and export the app's color themes. |
 | **Stitch** | Google Stitch UI design, with your own API key. |
 
-### Custom AntiGem plugins
+### Custom YouTube Automation plugins
 - Plugins are small packages with a `manifest.json` and a JavaScript worker that add MCP tools, and can include Markdown **skills** that teach the agent how to use them.
 - They run in the app's own extension host, which implements a large part of the Chrome extension API (`tabs`, `scripting`, `storage`, `debugger` and more), so many Chrome extension workers can be ported.
 - Install from a ZIP, or from a plugin repository on GitHub. The app checks repositories for updates in the background.
@@ -149,7 +147,7 @@ Get the latest APK from [Releases](https://github.com/KrishanKashyap/krishAuto/r
 | Variant | Package name | Needs the Termux app? | Notes |
 | :--- | :--- | :---: | :--- |
 | **`termux`** (recommended) | `com.termux` | No | Self-contained: the app sets up its own Linux environment. This is the one published in releases. |
-| **`standard`** | `com.antigem` | Yes | You run `agy_ide_bridge` inside a separately installed Termux app, and AntiGem connects to it over localhost. Not published; build it yourself from source. |
+| **`standard`** | `com.antigem` | Yes | You run `agy_ide_bridge` inside a separately installed Termux app, and YouTube Automation connects to it over localhost. Not published; build it yourself from source. |
 | **Server mode** (a mode, not a third build) | the same as the build you installed (`com.termux` or `com.antigem`) | No | The bridge, the agents (`agy`, Claude Code, OpenCode), your projects and the terminal run on **your own server (a VPS)**, and the phone is only the screen. Switch it on in **Settings → Servers**. Works with both variants. See [Server mode](#server-mode-run-it-on-a-vps) below. |
 
 > [!NOTE]
@@ -162,17 +160,17 @@ Get the latest APK from [Releases](https://github.com/KrishanKashyap/krishAuto/r
 
 Termux packages are compiled for the fixed path `/data/data/com.termux/files/usr`. An app with any other package name cannot run them directly. It would have to use **proot** to fake that path, and proot slows down every program, or rebuild every package for a new path.
 
-With the package name `com.termux`, AntiGem can install the official Termux bootstrap and use the official Termux package repositories, and everything runs at full native speed. This is the only reason for the name.
+With the package name `com.termux`, YouTube Automation can install the official Termux bootstrap and use the official Termux package repositories, and everything runs at full native speed. This is the only reason for the name.
 
 ### This is not a Termux fork
 
-AntiGem is not a copy or modification of the Termux app. The app was written from scratch. It uses only Termux's open-source **terminal-emulator** and **terminal-view** libraries for drawing the terminal, and the Termux bootstrap and package repositories for the Linux environment. The UI, the agent integrations, the Go bridge, the MCP servers, the plugin system and everything else are AntiGem's own code.
+YouTube Automation is not a copy or modification of the Termux app. The app was written from scratch. It uses only Termux's open-source **terminal-emulator** and **terminal-view** libraries for drawing the terminal, and the Termux bootstrap and package repositories for the Linux environment. The UI, the agent integrations, the Go bridge, the MCP servers, the plugin system and everything else are YouTube Automation's own code.
 
 ### Termux compatibility
 
 Packages, `apt`/`pkg`, the shell and almost everything else work as in Termux.
 
-AntiGem has essential Termux:API commands built in with zero setup:
+YouTube Automation has essential Termux:API commands built in with zero setup:
 
 | Command | Built in |
 | :--- | :---: |
@@ -189,26 +187,26 @@ AntiGem has essential Termux:API commands built in with zero setup:
 
 For advanced hardware APIs (such as `termux-location`, `termux-camera-photo`, `termux-sensor`, `termux-sms-*`, `termux-wifi-*`), install the matching signed companion app:
 
-👉 **[Download AntiGem Termux:API Companion App](https://github.com/Santoshkurmi/termux-api/releases)**
+👉 **[Download YouTube Automation Termux:API Companion App](https://github.com/termux/termux-api/releases)**
 
 > [!IMPORTANT]
-> **AntiGem Variant Requirement for Termux:API:**
-> - To use the external Termux:API companion app, you **must install the Shared UID variant** (`antiGem-termux-shared-v...apk`). Both apps share the `com.termux` Linux UID to communicate via UNIX sockets.
+> **YouTube Automation Variant Requirement for Termux:API:**
+> - To use the external Termux:API companion app, you **must install the Shared UID variant** (`YouTubeAutomation-termux-shared-v...apk`). Both apps share the `com.termux` Linux UID to communicate via UNIX sockets.
 > - **Existing Users:** Android does not allow changing `sharedUserId` via an update (`INSTALL_FAILED_SHARED_USER_INCOMPATIBLE`). If you currently have the Standalone build installed, you must **backup your files, uninstall the app, and install the Shared UID build**.
-> - You can check your current variant in AntiGem under **Settings → About & Info** (shows *Shared UID Build* or *Standalone Build*).
+> - You can check your current variant in YouTube Automation under **Settings → About & Info** (shows *Shared UID Build* or *Standalone Build*).
 
 **How to enable:**
-1. Install the companion APK from the [releases page](https://github.com/Santoshkurmi/termux-api/releases).
-2. In AntiGem, go to **Settings → Termux Support → Termux:API** and select **External Termux:API App**.
+1. Install the companion APK from the [releases page](https://github.com/termux/termux-api/releases).
+2. In YouTube Automation, go to **Settings → Termux Support → Termux:API** and select **External Termux:API App**.
 3. Tap **Reinstall Package Now** (or run `pkg reinstall termux-api` in the terminal) to restore the official dispatcher binary.
 
 #### X11 desktop
 
-AntiGem can run a Linux desktop (XFCE or LXQt) with [Termux:X11](https://github.com/termux/termux-x11). It uses AntiGem's own build of Termux:X11, signed to share the `com.termux` UID, so the desktop runs inside AntiGem's process and Android doesn't slow it down or stop it while you use it. This needs the **Shared UID build**.
+YouTube Automation can run a Linux desktop (XFCE or LXQt) with [Termux:X11](https://github.com/termux/termux-x11). It uses YouTube Automation's own build of Termux:X11, signed to share the `com.termux` UID, so the desktop runs inside YouTube Automation's process and Android doesn't slow it down or stop it while you use it. This needs the **Shared UID build**.
 
 Go to **Settings → Termux Support → X11 Desktop** and follow the steps: install the Termux:X11 app, the `termux-x11` command and a desktop, then tap **Start**.
 
-To set it up by hand instead, get `antigem-termux-x11-sharedUid.apk` and `antigem-termux-x11-*-all.deb` from the [AntiGem Termux:X11 releases](https://github.com/Santoshkurmi/termux-x11/releases/latest), install the APK, and run:
+To set it up by hand instead, get `antigem-termux-x11-sharedUid.apk` and `antigem-termux-x11-*-all.deb` from the [YouTube Automation Termux:X11 releases](https://github.com/KrishanKashyap/krishAuto/releases/tag/x11-v1), install the APK, and run:
 
 ```bash
 pkg install x11-repo
@@ -225,7 +223,7 @@ Then open Termux:X11. Don't install `termux-x11-nightly` from x11-repo: it only 
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    AntiGem Android app                   │
+│                    YouTube Automation Android app                   │
 │     Compose UI · terminal · editor · browser · MCPs      │
 └────────────────────────────┬─────────────────────────────┘
                              │  gRPC / WebSocket (localhost)
@@ -244,7 +242,7 @@ Then open Termux:X11. Don't install `termux-x11-nightly` from x11-repo: it only 
 
 ## Server mode (run it on a VPS)
 
-By default everything runs on the phone. In **Server mode** the heavy part moves to a Linux server that you own (a VPS, a home server, a spare PC): the **IDE bridge**, the **Antigravity hub (`agy`)**, **Claude Code**, your **projects, files, git and the shell** all live there, and AntiGem on the phone only shows the UI. It is the same app and the same interface, but the chats, the files and the agents' accounts live on the server (they are separate from any chats you have in local mode), so the agents keep working when the phone sleeps, and the phone stays light.
+By default everything runs on the phone. In **Server mode** the heavy part moves to a Linux server that you own (a VPS, a home server, a spare PC): the **IDE bridge**, the **Antigravity hub (`agy`)**, **Claude Code**, your **projects, files, git and the shell** all live there, and YouTube Automation on the phone only shows the UI. It is the same app and the same interface, but the chats, the files and the agents' accounts live on the server (they are separate from any chats you have in local mode), so the agents keep working when the phone sleeps, and the phone stays light.
 
 It is **not a separate APK**. Both the `termux` and the `standard` variant can use it: open **Settings → Servers** and pick **SSH tunnel** or **Server** under *Where the server runs*. The Linux environment on the phone is not needed in this mode. (Default ports differ per variant: `termux` uses 1234 / 1235 for the bridge / hub, `standard` uses 1236 / 1237.)
 
@@ -264,7 +262,7 @@ It is **not a separate APK**. Both the `termux` and the `standard` variant can u
 
 ```
 SSH tunnel mode (recommended)
-phone (AntiGem app)                                   your server (Linux, x86_64 or arm64)
+phone (YouTube Automation app)                                   your server (Linux, x86_64 or arm64)
  └─ SSH  ───────────────────────────────────────────►  sshd
       · phone 127.0.0.1:1234 ──(tunnel)──► agy_ide_bridge (server 127.0.0.1:1234)
       · phone 127.0.0.1:1235 ──(tunnel)──► agy hub        (server 127.0.0.1:1235)
@@ -273,7 +271,7 @@ phone (AntiGem app)                                   your server (Linux, x86_64
       · reverse tunnels: the server's agents can use the phone's browser, Android and notes tools (and adb, if you connect it)
 
 Server mode (domain)
-phone (AntiGem app)                              your server
+phone (YouTube Automation app)                              your server
  ├─ https://bridge.example.com  ──────────────►  nginx / Caddy / Apache ──► agy_ide_bridge (127.0.0.1)
  ├─ https://hub.example.com     ──────────────►  nginx / Caddy / Apache ──► agy hub        (127.0.0.1)
  └─ SSH                          ──────────────►  sshd (start / stop, terminal, reverse tunnels, as above)
@@ -284,7 +282,7 @@ phone (AntiGem app)                              your server
 ### How to set it up (short version)
 
 1. **Prepare the server:** a normal (non-root) user, `sshd`, `tmux`, `git`. Use a **dedicated VPS and a dedicated user**.
-2. **Get the bridge on the server:** the app does **not** contain it and never uploads anything. Build it once with Go (`CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build` in `agy_ide_bridge/`, or `arm64`), copy it to `~/.antigem/agy_ide_bridge` and `chmod +x` it. Build it from the **same version as your app**: the app compares versions on every launch and tells you when the bridge is out of date.
+2. **Get the bridge on the server:** the app does **not** contain it and never uploads anything. Build it once with Go (`CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build` in `agy_ide_bridge/`, or `arm64`), copy it to `~/.krishAuto/agy_ide_bridge` and `chmod +x` it. Build it from the **same version as your app**: the app compares versions on every launch and tells you when the bridge is out of date.
 3. **Install the agents on the server:** `curl -fsSL https://antigravity.google/cli/install.sh | bash` for Antigravity, `curl -fsSL https://claude.ai/install.sh | bash` for Claude Code (both end up in `~/.local/bin`). You can also install `agy` from the app (**Settings → Agents**) once the bridge is running.
 4. **Choose how the phone reaches it.** *SSH tunnel* (recommended): nothing to do, skip to step 5. *Server* mode: put a reverse proxy with TLS in front (nginx, Caddy or Apache) on two sub-domains, one for the bridge and one for the hub, add the **proxy access header** (a second secret that the proxy checks), and open only SSH, 80 and 443 in the firewall.
 5. **In the app (Settings → Servers):** pick **SSH tunnel** (the addresses are filled in as `http://127.0.0.1:<port>`; keep the default ports unless you changed them) or **Server** (enter your two addresses and, optionally, the proxy access header). Then enter the SSH host, user and key, check the server paths (they are pre-filled with the defaults), **Save**, **Reopen**. The app connects over SSH, opens the tunnels, starts the bridge, and shows its state and log.
@@ -309,7 +307,7 @@ The Backups & Restore screen is for the phone's own data and is hidden in Server
 
 ```bash
 git clone https://github.com/KrishanKashyap/krishAuto.git
-cd antigem
+cd krishAuto
 
 # Build the termux variant
 ./gradlew assembleTermuxDebug
@@ -325,7 +323,7 @@ APKs are written to `app/build/outputs/apk/<variant>/<buildType>/` and `build/ou
 ## Project structure
 
 ```text
-antigem/
+krishAuto/
 ├── app/src/main/
 │   ├── java/com/example/gemini/
 │   │   ├── data/          # Agent backends (agy, claude, opencode), terminal, ADB, automation, notes, updater
@@ -367,9 +365,8 @@ Issues, ideas and pull requests are welcome. For help, join the [WhatsApp commun
 
 ## Analytics
 
-AntiGem uses [TelemetryDeck](https://telemetrydeck.com) only to count how many people use the app. It records app opens, an anonymous install ID, session counts, and general device details (phone model, Android version, app version). It does **not** collect chats, prompts, code, files, terminal output, account emails or API keys. Debug builds are marked as test data.
+YouTube Automation uses [TelemetryDeck](https://telemetrydeck.com) only to count how many people use the app. It records app opens, an anonymous install ID, session counts, and general device details (phone model, Android version, app version). It does **not** collect chats, prompts, code, files, terminal output, account emails or API keys. Debug builds are marked as test data.
 
 ## License
 
-Copyright (C) 2026 Santosh Kurmi. Licensed under the [GNU General Public License v3.0](LICENSE) or any later version.
-Forked from AntiGem by Santosh Kurmi; modifications Copyright (C) 2026 Krishan Kashyap.
+Licensed under the [GNU General Public License v3.0](LICENSE) or any later version. See `LICENSE` for the copyright notice.

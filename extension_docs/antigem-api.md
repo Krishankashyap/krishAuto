@@ -1,4 +1,4 @@
-# chrome.antigem — AntiGem native API
+# chrome.antigem — YouTube Automation native API
 
 These are app additions, not Chrome APIs. Every call requires the manifest permission **`antigemFiles`**, including automation. Every method takes one object and returns a Promise; callback overloads are not supported. Errors reject. Page automation additionally checks the selected tab's host permission/activeTab access.
 

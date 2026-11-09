@@ -1,6 +1,6 @@
 # 09 — Tools & MCP Servers
 
-AntiGem features deep integration with the open-source **Model Context Protocol (MCP)**. MCP standardizes how AI agents communicate with local processes and remote services, giving agents the ability to run shell commands, automate mobile apps, browse the web, read files, and trigger assistant actions.
+YouTube Automation features deep integration with the open-source **Model Context Protocol (MCP)**. MCP standardizes how AI agents communicate with local processes and remote services, giving agents the ability to run shell commands, automate mobile apps, browse the web, read files, and trigger assistant actions.
 
 ---
 
@@ -9,20 +9,20 @@ AntiGem features deep integration with the open-source **Model Context Protocol 
 Large Language Models on their own can only generate text based on training data. An **MCP Server** acts as a bridge between the AI model and external tools:
 - The server declares what functions or tools it can perform (for example, taking a browser screenshot or running a bash command).
 - The agent calls these functions with arguments when reasoning through your prompt.
-- AntiGem routes the requests to the local bridge or process, enforces user permissions, and sends the structured response back to the agent.
+- YouTube Automation routes the requests to the local bridge or process, enforces user permissions, and sends the structured response back to the agent.
 
-AntiGem manages MCP configurations through the global `mcp_config.json` file and provides a clean graphical interface in **Settings → MCP Servers**. At the top of the screen, you will see the overview: *"Configure local process (Stdio) or remote (SSE) MCP servers"*.
+YouTube Automation manages MCP configurations through the global `mcp_config.json` file and provides a clean graphical interface in **Settings → MCP Servers**. At the top of the screen, you will see the overview: *"Configure local process (Stdio) or remote (SSE) MCP servers"*.
 
 ---
 
 ## ⚡ 2. Quick Presets & Built-In Integrations
 
-In the **Quick Presets & Templates** section, AntiGem provides nine pre-configured, one-tap server templates:
+In the **Quick Presets & Templates** section, YouTube Automation provides nine pre-configured, one-tap server templates:
 
 | Preset Name | Subtitle / Function | Transport & Connection |
 | :--- | :--- | :--- |
 | **Custom Plugin MCP** | *Pick an installed plugin* | Opens a picker allowing you to select and expose the MCP tools bundled with an installed plugin |
-| **Plugin Developer** | *Build & test AntiGem plugins* | Local bridge `/extension_developer` for creating and testing custom AntiGem plugins |
+| **Plugin Developer** | *Build & test YouTube Automation plugins* | Local bridge `/extension_developer` for creating and testing custom YouTube Automation plugins |
 | **Browser** | *Control the in-app browser* | Local bridge `/browser` (`browser_mcp`) for navigating web pages, clicking elements, filling inputs, and evaluating JavaScript |
 | **Terminal** | *Run commands in the terminal* | Local bridge `/terminal` (`terminal_mcp`) for running shell commands and inspecting build processes |
 | **Android** | *Tap, type & read this phone* | Local bridge `/android` (`android_automation_mcp`) for device automation, screen reading, and UI interaction |
@@ -45,7 +45,7 @@ Below the header card, tap **Browse MCP Catalog / Marketplace (1-Click)** to ope
   - Clear plain-language description of what capabilities the package adds.
   - Connection mode indicator: **⚡ Stdio** (showing CLI command and template arguments) or **🌐 Remote** (showing the SSE endpoint URL).
 - **README Documentation**: Tap **README** on any package card to open a full markdown preview of the documentation, setup requirements, and available tools without leaving the app.
-- **1-Click Install**: Tap the terracotta **Install** button. AntiGem downloads the package configuration and writes it to your configuration file. When completed, the button updates to a green checkmark with an **Installed** badge.
+- **1-Click Install**: Tap the terracotta **Install** button. YouTube Automation downloads the package configuration and writes it to your configuration file. When completed, the button updates to a green checkmark with an **Installed** badge.
 
 ---
 
@@ -71,7 +71,7 @@ To add any custom local or remote MCP server:
 - **SSE Endpoint URL \***: Full HTTP/HTTPS address (e.g. `https://stitch.googleapis.com/mcp` or `http://127.0.0.1:8000/sse`).
 - **HTTP Headers (Header: Value per line)**: Authentication and authorization headers (e.g. `Authorization: Bearer token` or `X-Goog-Api-Key: AQ...`).
 
-*(Note: MCP in AntiGem connects via local process Stdio or remote SSE HTTP streams; raw WebSockets are not used by the standard dialog).*
+*(Note: MCP in YouTube Automation connects via local process Stdio or remote SSE HTTP streams; raw WebSockets are not used by the standard dialog).*
 
 4. Tap **Save**.
 

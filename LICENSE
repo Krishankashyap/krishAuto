@@ -672,3 +672,11 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
+
+---
+
+Copyright notice
+
+YouTube Automation is a modified version of the original work.
+Copyright (C) 2026 Santosh Kurmi. Modifications Copyright (C) 2026 Krishan Kashyap.
+Licensed under the GNU General Public License v3.0 or any later version (see the text above).

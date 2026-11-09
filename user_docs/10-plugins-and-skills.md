@@ -1,6 +1,6 @@
 # 10 — Skills, Plugins & Slash Commands
 
-AntiGem provides an extensible customization system that lets you equip AI agents with specialized knowledge, install community and official Google plugins, build custom browser add-ons, and create productivity slash shortcuts.
+YouTube Automation provides an extensible customization system that lets you equip AI agents with specialized knowledge, install community and official Google plugins, build custom browser add-ons, and create productivity slash shortcuts.
 
 ---
 
@@ -56,11 +56,11 @@ The **Store** tab displays **Official 'Build with Google' Plugins**:
 
 ---
 
-## 🔌 3. Custom AntiGem Plugins (`Settings → Custom AntiGem Plugins`)
+## 🔌 3. Custom YouTube Automation Plugins (`Settings → Custom YouTube Automation Plugins`)
 
-Under **Settings → Custom AntiGem Plugins** (`WebViewExtensionsScreen`), you can install modular extensions that execute inside AntiGem's webview engine:
+Under **Settings → Custom YouTube Automation Plugins** (`WebViewExtensionsScreen`), you can install modular extensions that execute inside YouTube Automation's webview engine:
 
-> *"Install custom AntiGem plugins from ZIP files or from a repository. A plugin can have MCP tools, skills (skills/*.md), or both. Changes apply to the running browser immediately."*
+> *"Install custom YouTube Automation plugins from ZIP files or from a repository. A plugin can have MCP tools, skills (skills/*.md), or both. Changes apply to the running browser immediately."*
 
 ### A. Installed Tab
 Lists all active webview extensions:
@@ -74,7 +74,7 @@ Lists all active webview extensions:
 - **Quick Card Actions**:
   - **Update available**: Displays `Update available: <old> → <new>` with an **Update** button.
   - **Update ZIP**: Replaces the plugin files from a newer ZIP archive while preserving its stored data and unique ID.
-  - **Reload**: Restarts the plugin's background worker without restarting AntiGem.
+  - **Reload**: Restarts the plugin's background worker without restarting YouTube Automation.
   - **Download as ZIP**: Exports the plugin package to your phone's public `Downloads` directory.
   - **Remove**: Opens the confirmation dialog:
     - **Title**: **Remove <folder name>?**
@@ -98,13 +98,13 @@ Browse community and third-party plugin repositories to install pre-built add-on
 ### D. Connecting Plugins to AI Agents via MCP:
 Installing a plugin makes it available in the app, but agents need MCP access to invoke its tools:
 1. Open **Settings → MCP Servers**.
-2. Tap the preset tile titled **Custom Plugin MCP** (opens dialog titled **Custom AntiGem Plugin MCP**).
-   - If no plugins are enabled: displays *"Enable or install a plugin in Settings → Custom AntiGem Plugins first."*
+2. Tap the preset tile titled **Custom Plugin MCP** (opens dialog titled **Custom YouTube Automation Plugin MCP**).
+   - If no plugins are enabled: displays *"Enable or install a plugin in Settings → Custom YouTube Automation Plugins first."*
    - Select your enabled plugin to attach its tools to the agent. Its bundled skills are automatically exposed as `get_skills` and `get_skill` tools.
 3. In chat, you can type `/plu:` to point the model directly at a plugin or one of its skills.
 
 ### E. Developing Your Own Plugins:
-> *"To create a plugin with your model, add Custom AntiGem Plugin Developer in MCP settings. It supplies the SDK, draft editing, installation, updates, tests and worker logs."*
+> *"To create a plugin with your model, add Custom YouTube Automation Plugin Developer in MCP settings. It supplies the SDK, draft editing, installation, updates, tests and worker logs."*
 
 - In **Settings → MCP Servers**, select the preset tile **Plugin Developer**.
 - This equips the agent with the developer SDK so you can design, test, update, and inspect background worker logs entirely through chat!
@@ -131,7 +131,7 @@ Save time on frequent instructions by setting up custom trigger commands under *
 - Tap **Delete** next to any custom command and confirm in the dialog: **Delete /name?**.
 
 ### Using Commands in Chat:
-- In the chat box, type `/` followed by your keyword (e.g. `/audit main.py`) and tap Send. AntiGem automatically replaces the shortcut with your full expanded prompt template!
+- In the chat box, type `/` followed by your keyword (e.g. `/audit main.py`) and tap Send. YouTube Automation automatically replaces the shortcut with your full expanded prompt template!
 
 ---
 
@@ -140,12 +140,12 @@ Save time on frequent instructions by setting up custom trigger commands under *
 ### ❌ Symptom: The plugin shows an error or will not load after installing a ZIP.
 - **What to check**: Check if the ZIP contains `manifest.json` at its root or inside a single top-level folder.
 - **How to fix**:
-  1. Open **Settings → Custom AntiGem Plugins**, find the plugin card, and tap **Reload**.
+  1. Open **Settings → Custom YouTube Automation Plugins**, find the plugin card, and tap **Reload**.
   2. If the problem persists, tap **Update ZIP** and select a corrected package.
 
 ### ❌ Symptom: How do I cleanly remove a plugin and all its cached data?
 - **How to fix**:
-  1. In **Settings → Custom AntiGem Plugins**, tap the trash (**Remove**) icon on the card.
+  1. In **Settings → Custom YouTube Automation Plugins**, tap the trash (**Remove**) icon on the card.
   2. In the **Remove <folder name>?** dialog, check the box **"Also delete its stored data (otherwise kept for a reinstall)"**.
   3. Tap **Remove**.
   4. If you had added it in MCP settings, open **Settings → MCP Servers** and remove the corresponding server entry there too.

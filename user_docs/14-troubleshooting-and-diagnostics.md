@@ -1,6 +1,6 @@
 # 14 — Self-Help, Troubleshooting & Diagnostics
 
-When something in AntiGem doesn’t work as expected, you don’t need to be a developer to diagnose and fix it. This guide provides plain-language troubleshooting steps for the most common issues, along with instructions on how to use AntiGem's built-in diagnostic tools.
+When something in YouTube Automation doesn’t work as expected, you don’t need to be a developer to diagnose and fix it. This guide provides plain-language troubleshooting steps for the most common issues, along with instructions on how to use YouTube Automation's built-in diagnostic tools.
 
 ---
 
@@ -18,9 +18,9 @@ Before troubleshooting, check the status indicators across the app:
 ### ❌ Symptom: Red status dot or "Failed to connect to daemon".
 - **What to check**: Check whether the background Android service is active.
 - **How to fix**:
-  1. Swipe down your Android notification shade: check if the persistent **"AntiGem Service"** notification is visible. If not, open Android **Settings → Apps → AntiGem → Battery** and set to **Unrestricted**.
+  1. Swipe down your Android notification shade: check if the persistent **"YouTube Automation Service"** notification is visible. If not, open Android **Settings → Apps → YouTube Automation → Battery** and set to **Unrestricted**.
   2. If you are running locally on your phone, open **Settings → Servers & Connectivity** and make sure **Remote Mode** is turned **OFF**.
-  3. Open **Android Settings → Apps → AntiGem → Storage → "Manage space" → AntiGem Space Manager**, tap **Clear Temporary Cache**, force-close the app from your Android Recent Apps switcher, and reopen it.
+  3. Open **Android Settings → Apps → YouTube Automation → Storage → "Manage space" → YouTube Automation Space Manager**, tap **Clear Temporary Cache**, force-close the app from your Android Recent Apps switcher, and reopen it.
 
 ### ❌ Symptom: Remote Server Mode says "Connection Refused" or "Host Unreachable".
 - **What to check**: Verify Wi-Fi network and firewall settings on your host machine.
@@ -55,7 +55,7 @@ Before troubleshooting, check the status indicators across the app:
 
 ### ❌ Symptom: "No space left on device" error in the terminal.
 - **What to check**: Check available internal storage in your phone's Android Settings.
-- **How to fix**: Ensure you have at least 1 GB of free phone storage. Go to **Android Settings → Apps → AntiGem → Storage → "Manage space" → AntiGem Space Manager** and tap **Clear Temporary Cache**.
+- **How to fix**: Ensure you have at least 1 GB of free phone storage. Go to **Android Settings → Apps → YouTube Automation → Storage → "Manage space" → YouTube Automation Space Manager** and tap **Clear Temporary Cache**.
 
 ---
 
@@ -64,7 +64,7 @@ Before troubleshooting, check the status indicators across the app:
 ### ❌ Symptom: Jarvis does not hear you or the voice orb stays cyan.
 - **What to check**: Check Android microphone permissions and speech recognition state.
 - **How to fix**:
-  1. Open Android **Settings → Apps → AntiGem → Permissions → Microphone** and set it to **Allow**.
+  1. Open Android **Settings → Apps → YouTube Automation → Permissions → Microphone** and set it to **Allow**.
   2. Test speech recognition on the Chat screen by tapping the small microphone icon in the text input bar. If voice dictation works there, your microphone is healthy.
   3. Wake phrase detection ("Hey Jarvis") requires the phone screen to be on unless background listening is enabled in **Settings → Jarvis → Waking Jarvis**.
 
@@ -82,7 +82,7 @@ Before troubleshooting, check the status indicators across the app:
 - **What to check**: Check internet connection and Android "Install unknown apps" permission.
 - **How to fix**:
   1. In the **App Update Dialog**, check the download progress bar.
-  2. If the package installer fails to launch, grant AntiGem permission to install APKs in Android **Settings → Apps → AntiGem → Install unknown apps**.
+  2. If the package installer fails to launch, grant YouTube Automation permission to install APKs in Android **Settings → Apps → YouTube Automation → Install unknown apps**.
   3. Alternatively, tap the browser link inside the update dialog to download the latest APK directly from GitHub Releases.
 
 ---
@@ -100,9 +100,9 @@ Before troubleshooting, check the status indicators across the app:
 
 ---
 
-## 📊 7. Using AntiGem's Built-in Diagnostics Tools
+## 📊 7. Using YouTube Automation's Built-in Diagnostics Tools
 
-AntiGem provides dedicated diagnostic instrumentation under **Settings → Diagnostics & Performance** (*"Live network connections, active streams & thread HUD"*):
+YouTube Automation provides dedicated diagnostic instrumentation under **Settings → Diagnostics & Performance** (*"Live network connections, active streams & thread HUD"*):
 
 ### 1. Floating Diagnostics HUD
 - **How to turn on**: Open **Settings → Diagnostics & Performance** and toggle **Floating Diagnostics HUD** to ON (displays badge: **HUD on**).
@@ -135,4 +135,4 @@ If you encounter an issue that cannot be resolved:
 1. Open **Settings → Diagnostics & Performance**.
 2. Review the **Current Telemetry Snapshot** and **Network Inspector (Live Logs)** for failed calls (red status badges).
 3. In Chat, tap the server icon to view **Local Server Logs** (or **Server Logs (SSH)** when in remote mode).
-4. Note the error message and failed status codes, and open an issue on the AntiGem GitHub repository.
+4. Note the error message and failed status codes, and open an issue on the YouTube Automation GitHub repository.

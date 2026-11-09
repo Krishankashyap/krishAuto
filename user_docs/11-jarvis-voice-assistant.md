@@ -1,6 +1,6 @@
 # 11 — Jarvis Voice Assistant
 
-**Jarvis** is AntiGem's hands-free voice assistant. With Jarvis, you can control the entire app, talk to open code files, watch active background tasks, answer approval prompts, and adjust settings using your voice.
+**Jarvis** is YouTube Automation's hands-free voice assistant. With Jarvis, you can control the entire app, talk to open code files, watch active background tasks, answer approval prompts, and adjust settings using your voice.
 
 ---
 
@@ -60,7 +60,7 @@ Every sub-page under **Settings → Jarvis** controls a specific capability:
 
 ### C. Personality & you (`JARVIS_PERSONALITY`)
 - **"Jarvis speaks as"**: Set grammatical self-address to **"Female"**, **"Male"**, **"Neutral"**, or **"Not set"** (essential for gendered languages like Hindi).
-- **"About you and extra instructions"**: Multi-line instructions sent on the first message of every new Jarvis chat (e.g., *"Call me Santosh. Reply in Hinglish. I mostly work on the antigem project."*).
+- **"About you and extra instructions"**: Multi-line instructions sent on the first message of every new Jarvis chat (e.g., *"Call me Krishan. Reply in Hinglish. I mostly work on my YouTube videos."*).
 - **"Jarvis memory (Jarvis can edit this too)"**: A persistent memory scratchpad that Jarvis can read and edit on its own across sessions.
 
 ### D. Waking Jarvis (`JARVIS_WAKE`)
@@ -132,7 +132,7 @@ Every sub-page under **Settings → Jarvis** controls a specific capability:
 
 ### ❌ Symptom: Jarvis says "Microphone permission required" and stops.
 - **What to check**: Check Android system permissions.
-- **How to fix**: Open Android **Settings → Apps → AntiGem → Permissions → Microphone** and select **Allow only while using the app** (or **Allow all the time** for hands-free background wake phrase).
+- **How to fix**: Open Android **Settings → Apps → YouTube Automation → Permissions → Microphone** and select **Allow only while using the app** (or **Allow all the time** for hands-free background wake phrase).
 
 ### ❌ Symptom: Wake phrase ("Hey Jarvis") does not trigger.
 - **What to check**: Check trigger mode and Hands-free setting.
@@ -147,4 +147,4 @@ Every sub-page under **Settings → Jarvis** controls a specific capability:
 
 ### ❌ Symptom: Online voice fails or produces no sound.
 - **What to check**: Check API key and network connection for OpenAI or Google Cloud TTS.
-- **How to fix**: Open **Settings → Jarvis → Voice output**. AntiGem automatically falls back to **"This device"** voice if online TTS fails. Tap **Test voice** to verify local speech synthesis.
+- **How to fix**: Open **Settings → Jarvis → Voice output**. YouTube Automation automatically falls back to **"This device"** voice if online TTS fails. Tap **Test voice** to verify local speech synthesis.

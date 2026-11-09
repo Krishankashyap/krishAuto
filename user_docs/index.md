@@ -1,6 +1,6 @@
-# AntiGem User Documentation — Master Index
+# YouTube Automation User Documentation — Master Index
 
-This is the table of contents for the whole AntiGem user guide. Every chapter is listed below with all of its sections, so you can jump straight to the part you need.
+This is the table of contents for the whole YouTube Automation user guide. Every chapter is listed below with all of its sections, so you can jump straight to the part you need.
 
 If you are new, start with the [front page](README.md), then [Getting Started](01-getting-started-and-onboarding.md). If something is broken right now, go to [Troubleshooting & Diagnostics](14-troubleshooting-and-diagnostics.md).
 
@@ -27,7 +27,7 @@ Quick fixes for the three most common problems, the chapter directory, and how t
 
 - 🆘 Quick Help: Start Here
 - 🗺️ Documentation Directory
-- 📱 Quick Concept: How AntiGem is Organized
+- 📱 Quick Concept: How YouTube Automation is Organized
 - 🛠️ General Troubleshooting
 
 ### [00 — Feature Coverage & Verification Proof](00-feature-coverage.md)
@@ -41,7 +41,7 @@ Proof that every screen, setting and Jarvis page in the app is covered by a guid
 ### [01 — Getting Started & First Launch](01-getting-started-and-onboarding.md)
 First launch, permissions, choosing your agents, installing the Linux tools, and the floating controls.
 
-- 🚀 1. Welcome to AntiGem & Permissions (`AppPermissionsDialog`)
+- 🚀 1. Welcome to YouTube Automation & Permissions (`AppPermissionsDialog`)
 - 🤖 2. Step 1: Choose Your Agents (`AgentsSetupUi`)
 - 📦 3. Setting Up the Local Linux Environment (`FullScreenLocalToolsInstaller`)
 - 🔘 4. Terminal App Setup (`TerminalLauncherOnboardingDialog`)
@@ -134,11 +134,11 @@ What MCP servers are, the one-tap presets, the marketplace, adding your own serv
 - 🛠️ Troubleshooting MCP Issues
 
 ### [10 — Skills & Plugins](10-plugins-and-skills.md)
-Teaching your agents new skills, where skills and plugins live on disk, custom AntiGem plugins, and custom slash commands.
+Teaching your agents new skills, where skills and plugins live on disk, custom YouTube Automation plugins, and custom slash commands.
 
 - 🧠 1. Agent Skills & Official Google Plugins (`Settings → Skills & Plugins`)
 - 📁 2. Where Skills & Plugins Live on Disk
-- 🔌 3. Custom AntiGem Plugins (`Settings → Custom AntiGem Plugins`)
+- 🔌 3. Custom YouTube Automation Plugins (`Settings → Custom YouTube Automation Plugins`)
 - ⚡ 4. Custom Slash Commands (`Settings → Slash Commands`)
 - 🛠️ Troubleshooting Skills & Plugins
 
@@ -170,7 +170,7 @@ Running the heavy work on your own server: the three modes, saved profiles, addr
 - 🔀 5. Port Forwards (Server → This Phone)
 - 🛡️ 6. Security: Tokens & Proxy Access Headers
 - 🕹️ 7. Live Server Control & Logs
-- 💾 8. Saving Changes & Reopening AntiGem
+- 💾 8. Saving Changes & Reopening YouTube Automation
 - 🛠️ Troubleshooting Server & Remote Connection Issues
 
 ### [13 — Complete Settings Reference](13-settings-reference.md)
@@ -180,14 +180,14 @@ Every settings page in the app, in order, with the exact labels and options you 
 - 1. Settings & Preferences (`MAIN`)
 - 2. Appearance & Theme (`APPEARANCE`)
 - 3. Servers & Connectivity (`SERVERS`)
-- 4. Custom AntiGem Plugins (`WEBVIEW_EXTENSIONS`)
+- 4. Custom YouTube Automation Plugins (`WEBVIEW_EXTENSIONS`)
 - 5. Slash Commands (`SLASH_COMMANDS`)
 - 6. MCP Servers (`MCP`)
 - 7. Skills & Plugins (`SKILLS_PLUGINS`)
 - 8. Terminal & Shell (`TERMINAL`)
 - 9. Backups & Restore (`BACKUPS`)
 - 10. Data Loss Protection (`DATA_PROTECTION`)
-- 🗄️ AntiGem Space Manager (Standalone System Screen)
+- 🗄️ YouTube Automation Space Manager (Standalone System Screen)
 - 11. Commands & Permissions (`COMMANDS`)
 - 12. Antigravity (`ANTIGRAVITY`)
 - 13. Antigravity CLI (`AGY_CLI`)
@@ -216,7 +216,7 @@ How to check your setup, fix problems one by one, and read the app's own diagnos
 - 🎙️ 4. Jarvis & Voice Assistant Issues
 - 🔄 5. App Updates & Update Failures
 - ⚙️ 6. Settings & Visibility Issues
-- 📊 7. Using AntiGem's Built-in Diagnostics Tools
+- 📊 7. Using YouTube Automation's Built-in Diagnostics Tools
 
 ### [15 — FAQ & Glossary](15-faq-and-glossary.md)
 Short answers to common questions, and plain-English definitions of the technical terms used across the app.

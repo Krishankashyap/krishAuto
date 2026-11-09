@@ -22,7 +22,7 @@ data class DiagnosticsSnapshot(
     val topBlockedThreads: List<String> = emptyList()
 )
 
-object AntiGemLiveDiagnostics {
+object YouTubeAutomationLiveDiagnostics {
     private val _snapshot = MutableStateFlow(DiagnosticsSnapshot())
     val snapshot: StateFlow<DiagnosticsSnapshot> = _snapshot.asStateFlow()
 

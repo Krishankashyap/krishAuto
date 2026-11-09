@@ -83,7 +83,7 @@ func (h *Handler) HealthHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ShutdownHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"success": true,
-		"message": "antiGem Go server is shutting down...",
+		"message": "YouTube Automation Go server is shutting down...",
 	})
 
 	if h.OnShutdown != nil {
@@ -1084,7 +1084,7 @@ func (h *Handler) CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	switch req.Template {
 	case "python":
 		_ = os.WriteFile(filepath.Join(targetDir, "main.py"), []byte("def main():\n    print(\"Hello from Python IDE!\")\n\nif __name__ == '__main__':\n    main()\n"), 0644)
-		_ = os.WriteFile(filepath.Join(targetDir, "README.md"), []byte("# "+projectName+"\n\nPython project created in antiGem IDE.\n"), 0644)
+		_ = os.WriteFile(filepath.Join(targetDir, "README.md"), []byte("# "+projectName+"\n\nPython project created in YouTube Automation IDE.\n"), 0644)
 	case "node":
 		_ = os.WriteFile(filepath.Join(targetDir, "index.js"), []byte("console.log('Hello from Node.js IDE!');\n"), 0644)
 		_ = os.WriteFile(filepath.Join(targetDir, "package.json"), []byte(fmt.Sprintf("{\n  \"name\": \"%s\",\n  \"version\": \"1.0.0\",\n  \"main\": \"index.js\"\n}\n", projectName)), 0644)

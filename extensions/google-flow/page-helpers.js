@@ -1194,7 +1194,7 @@
                   body = await input.clone().text();
                 }
                 var entry = url.indexOf('batchexecute') >= 0 ? start(url, body) : null;
-                if (entry && entry.blocked) throw new TypeError('Blocked by AntiGem send guard');
+                if (entry && entry.blocked) throw new TypeError('Blocked by YouTube Automation send guard');
                 var p = of.apply(window, arguments);
                 if (entry) {
                   p.then(function (res) {

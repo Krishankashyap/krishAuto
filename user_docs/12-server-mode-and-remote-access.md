@@ -1,6 +1,6 @@
 # 12 — Server Mode & Remote Access
 
-AntiGem can operate in two modes: running locally on your phone (**"This phone"**), or running on an external computer or cloud instance (**"Server"** or **"SSH tunnel"**). This lets your phone act as a light, responsive mobile interface while your computer handles the heavy processing and compilation.
+YouTube Automation can operate in two modes: running locally on your phone (**"This phone"**), or running on an external computer or cloud instance (**"Server"** or **"SSH tunnel"**). This lets your phone act as a light, responsive mobile interface while your computer handles the heavy processing and compilation.
 
 ---
 
@@ -16,7 +16,7 @@ In **Settings → Servers & Connectivity**, the very first card is titled **"Whe
    - Best when connecting to a remote server with public domains (e.g. `https://bridge.example.com` and `https://hub.example.com` behind nginx/Apache) or direct IP addresses.
 3. **SSH tunnel** (Encrypted Tunnel Mode):
    - *Description*: *"On your server, reached through the SSH connection: no open ports, no domain, no reverse proxy."*
-   - The safest and easiest way to connect to a private PC or server: the bridge and hub listen strictly on the server's `127.0.0.1`, and AntiGem forwards the ports over your encrypted SSH session.
+   - The safest and easiest way to connect to a private PC or server: the bridge and hub listen strictly on the server's `127.0.0.1`, and YouTube Automation forwards the ports over your encrypted SSH session.
 
 ---
 
@@ -39,7 +39,7 @@ You can save and switch between multiple servers (e.g., your home desktop, work 
 
 ## 🌐 3. Server Addresses & Ports
 
-The **"Server addresses"** card configures where AntiGem sends network traffic:
+The **"Server addresses"** card configures where YouTube Automation sends network traffic:
 
 - **IDE Bridge address**:
   - In local mode or SSH tunnel mode: defaults to `http://127.0.0.1:8080`.
@@ -60,7 +60,7 @@ The **"Server addresses"** card configures where AntiGem sends network traffic:
 
 ## 🔑 4. SSH Access & Authentication
 
-When using **Server** or **SSH tunnel** mode, AntiGem manages the remote server process through SSH:
+When using **Server** or **SSH tunnel** mode, YouTube Automation manages the remote server process through SSH:
 
 - **SSH host**: The server hostname or IP address (e.g., `192.168.1.50` or `mybox.net`).
 - **Port**: SSH port (default `22`).
@@ -71,7 +71,7 @@ When using **Server** or **SSH tunnel** mode, AntiGem manages the remote server 
   - Tap **"Choose key file"** to pick a key from your phone storage, or **"Paste key"** to paste from the clipboard.
 - **Key passphrase (if it has one)**: Passphrase used to decrypt your private key.
 - **"Test SSH" Button**: Verifies SSH connectivity and displays the remote shell confirmation.
-- **"Forget host key" Button**: AntiGem pins the server's SSH host key on first connection for security. If you reinstalled your server OS and the host key changed, tap this button to accept the new key.
+- **"Forget host key" Button**: YouTube Automation pins the server's SSH host key on first connection for security. If you reinstalled your server OS and the host key changed, tap this button to accept the new key.
 
 ### Advanced Server Binary Paths:
 Tapping **"Show"** under **Advanced (server paths and ports)** exposes:
@@ -79,7 +79,7 @@ Tapping **"Show"** under **Advanced (server paths and ports)** exposes:
 - **agy binary on the server**: Path to the `agy` CLI executable.
 - **claude binary on the server**: Path to `claude` CLI.
 - **opencode binary on the server**: Path to `opencode` CLI.
-- **Bridge folder (in the server home)**: Directory where AntiGem stores server runtime files (default: `~/.antigem-server`).
+- **Bridge folder (in the server home)**: Directory where YouTube Automation stores server runtime files (default: `~/.antigem-server`).
 
 ---
 
@@ -103,7 +103,7 @@ The **"Port forwards (server → this phone)"** card lets you access web apps ru
 
 ## 🛡️ 6. Security: Tokens & Proxy Access Headers
 
-AntiGem provides two distinct layers of security to prevent unauthorized access to your server:
+YouTube Automation provides two distinct layers of security to prevent unauthorized access to your server:
 
 ### Layer 1: Security Token (Header Obfuscation)
 - **12-Character Secret Token**: The token input field is labelled `"12-Character Secret Token"`. It holds a secret key that frames every HTTP request to the bridge with an obfuscated authentication header.
@@ -115,7 +115,7 @@ AntiGem provides two distinct layers of security to prevent unauthorized access 
 
 ### Layer 2: Proxy Access Header (Second Layer)
 *Used when running behind a reverse proxy like nginx or Apache in direct Server mode:*
-- **Header name**: Custom HTTP header (e.g., `X-AntiGem-Secret`).
+- **Header name**: Custom HTTP header (e.g., `X-YouTube Automation-Secret`).
 - **Header value (secret)**: Secret value required by the reverse proxy.
 - **"Generate" Button**: Generates a random secure secret.
 - **"Copy nginx rule" Button**: Copies a ready-to-paste nginx configuration snippet:
@@ -143,12 +143,12 @@ When Remote Server mode is active, the **"Server control"** card appears:
 
 ---
 
-## 💾 8. Saving Changes & Reopening AntiGem
+## 💾 8. Saving Changes & Reopening YouTube Automation
 
 Whenever you change server settings:
 1. Tap **"Save Server & Security Settings"** at the bottom of the screen.
 2. If any required fields are missing or invalid, a red feedback banner explains the exact issue.
-3. Once valid, a confirmation dialog titled **"Reopen AntiGem?"** will appear (*"The app has to restart to connect to the new server settings"*).
+3. Once valid, a confirmation dialog titled **"Reopen YouTube Automation?"** will appear (*"The app has to restart to connect to the new server settings"*).
 4. Tap **"Reopen Now"** to immediately reconnect with the new settings, or **"Later"** to finish editing.
 
 ---
@@ -164,7 +164,7 @@ Whenever you change server settings:
 - **How to fix**: If you selected **Server** mode (without tunnel), you cannot use `127.0.0.1` because the phone would attempt to connect to itself. Enter the real IP or domain name of your computer, or switch to **SSH tunnel** mode.
 
 ### ❌ Symptom: "The server's host key does not match the pinned key" or SSH connection fails after reinstalling server OS.
-- **What to check**: AntiGem security pins your server's SSH key on first connection to protect against spoofing.
+- **What to check**: YouTube Automation security pins your server's SSH key on first connection to protect against spoofing.
 - **How to fix**: Go to **Settings → Servers & Connectivity → SSH access** and tap **"Forget host key"**. Then tap **Test SSH** to accept and pin the server's new key.
 
 ### ❌ Symptom: "That file is not a private key (expected -----BEGIN … PRIVATE KEY-----)".

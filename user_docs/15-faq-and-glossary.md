@@ -1,28 +1,28 @@
 # 15 — FAQ & Glossary
 
-This guide answers the most frequently asked questions about AntiGem and provides a plain-English glossary of every technical term used in the app.
+This guide answers the most frequently asked questions about YouTube Automation and provides a plain-English glossary of every technical term used in the app.
 
 ---
 
 ## ❓ Frequently Asked Questions (FAQ)
 
-### Q: Can I use AntiGem completely offline without internet?
-**A:** Yes, for local coding and terminal tasks! The built-in Linux environment, code editor, terminal, file manager, and notes work 100% offline. If you want AI assistance while offline, you can connect AntiGem to an offline local model (e.g. Ollama running on your local network) using OpenCode. Cloud models require an active internet connection.
+### Q: Can I use YouTube Automation completely offline without internet?
+**A:** Yes, for local coding and terminal tasks! The built-in Linux environment, code editor, terminal, file manager, and notes work 100% offline. If you want AI assistance while offline, you can connect YouTube Automation to an offline local model (e.g. Ollama running on your local network) using OpenCode. Cloud models require an active internet connection.
 
 ### Q: Where are my code files actually stored on my phone?
-**A:** Your files live in AntiGem’s secure internal storage directory (`/data/user/0/com.termux/files/home/antigem` or `~/projects`). You can also link AntiGem directly to your phone's public `Downloads` or `Documents` folder by running `termux-setup-storage` in the terminal.
+**A:** Your files live in YouTube Automation’s secure internal storage directory (`/data/user/0/com.termux/files/home/antigem` or `~/projects`). You can also link YouTube Automation directly to your phone's public `Downloads` or `Documents` folder by running `termux-setup-storage` in the terminal.
 
-### Q: Will AntiGem drain my phone's battery?
+### Q: Will YouTube Automation drain my phone's battery?
 **A:** Normal chatting, editing code, and browsing use very little battery—comparable to reading a web page. However, running heavy build scripts (like compiling C++ or building large projects) will use more CPU power. If battery life is a concern, use **Remote Server Mode** (see [Guide 12](12-server-mode-and-remote-access.md)) to let your computer do the heavy lifting while your phone stays cool.
 
 ### Q: Can I build real, working Android apps or websites on my phone?
-**A:** Absolutely. You can run Node.js, Python, Rust, Go, and web servers directly inside AntiGem. You can view websites in the built-in browser, and test Android apps using wireless ADB debugging.
+**A:** Absolutely. You can run Node.js, Python, Rust, Go, and web servers directly inside YouTube Automation. You can view websites in the built-in browser, and test Android apps using wireless ADB debugging.
 
 ### Q: Is my code or data sent to third parties?
-**A:** AntiGem itself does not sell or track your code. When you talk to an AI agent, your prompt and referenced files are sent only to the AI provider you selected (Google for Antigravity, Anthropic for Claude Code, or your own private server for OpenCode). If you use OpenCode with a self-hosted Ollama server, zero data ever leaves your local network.
+**A:** YouTube Automation itself does not sell or track your code. When you talk to an AI agent, your prompt and referenced files are sent only to the AI provider you selected (Google for Antigravity, Anthropic for Claude Code, or your own private server for OpenCode). If you use OpenCode with a self-hosted Ollama server, zero data ever leaves your local network.
 
-### Q: How do I update AntiGem to the latest version?
-**A:** AntiGem has an automatic update checker. When a new version is released on GitHub, a banner and dialog will appear offering to download and install the update. You can also manually check anytime in **Settings → About & Info → Check for Updates**.
+### Q: How do I update YouTube Automation to the latest version?
+**A:** YouTube Automation has an automatic update checker. When a new version is released on GitHub, a banner and dialog will appear offering to download and install the update. You can also manually check anytime in **Settings → About & Info → Check for Updates**.
 
 ---
 
@@ -31,11 +31,11 @@ This guide answers the most frequently asked questions about AntiGem and provide
 Here is what all the technical terms in the app mean in plain, everyday language:
 
 - **Agent**: An AI system capable of taking multi-step actions (such as searching files, running tests, and editing code) rather than just answering questions.
-- **Model**: The specific AI engine generating responses. In AntiGem, models are fetched dynamically in real time from your active agent and account tier rather than being hardcoded into the app.
+- **Model**: The specific AI engine generating responses. In YouTube Automation, models are fetched dynamically in real time from your active agent and account tier rather than being hardcoded into the app.
 - **Thinking / Reasoning Tokens**: Internal "brainstorming" words generated by advanced AI models before writing their final answer. You can read them inside the collapsible "Thinking..." accordion in chat, and control reasoning depth via model effort pills or the Claude chat controls strip.
 - **Daemon**: A background service that runs silently behind the scenes to manage file changes, terminal sessions, and communication with the AI.
 - **Rootfs / PRoot**: A self-contained Linux file system that runs on your Android phone without needing to root or hack your device.
-- **Termux**: The open-source Android terminal emulator environment upon which AntiGem’s shell is built.
+- **Termux**: The open-source Android terminal emulator environment upon which YouTube Automation’s shell is built.
 - **MCP (Model Context Protocol)**: An open standard that lets AI models plug into external tools, databases, web browsers, and device sensors.
 - **Trajectory (`.antigem`)**: The complete history of an AI conversation, including all thoughts, tool calls, command outputs, and user prompts, saved into an interactive replay file.
 - **Tmux**: A terminal utility that keeps your terminal tabs running in the background even if you close the app or switch screens.
@@ -45,7 +45,7 @@ Here is what all the technical terms in the app mean in plain, everyday language
 - **Git Commit**: A permanent snapshot of your project's code at a specific point in time, allowing you to track changes or undo mistakes.
 - **Diff**: A color-coded view comparing two versions of a file (red for deleted code, green for added code).
 - **Slash Command (`/`)**: A short shortcut (like `/plan` or `/goal`) typed into the chat box that expands into a full set of instructions for the AI.
-- **Jarvis**: The hands-free voice assistant inside AntiGem that lets you speak prompts, monitor tasks, and approve actions.
+- **Jarvis**: The hands-free voice assistant inside YouTube Automation that lets you speak prompts, monitor tasks, and approve actions.
 
 *(Note on Worktrees: Git worktree management is handled through standard branching inside the IDE rather than a separate mobile worktree manager to maintain a clean, simple project structure).*
 

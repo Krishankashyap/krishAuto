@@ -50,7 +50,7 @@ object ImageDownloadHelper {
             if (savedUri != null) {
                 if (snackbarHostState != null) {
                     val result = snackbarHostState.showSnackbar(
-                        message = "Image saved to Downloads/AntiGem",
+                        message = "Image saved to Downloads/YouTube Automation",
                         actionLabel = "Open",
                         duration = SnackbarDuration.Short
                     )
@@ -58,7 +58,7 @@ object ImageDownloadHelper {
                         openImage(context, savedUri, mimeType)
                     }
                 } else {
-                    Toast.makeText(context, "Image saved to Downloads/AntiGem", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Image saved to Downloads/YouTube Automation", Toast.LENGTH_SHORT).show()
                 }
             } else {
                 Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
@@ -67,7 +67,7 @@ object ImageDownloadHelper {
     }
 
     /**
-     * Saves a video (local path, file://, content:// or http(s) URL) to Downloads/AntiGem, streaming it to disk.
+     * Saves a video (local path, file://, content:// or http(s) URL) to Downloads/YouTube Automation, streaming it to disk.
      */
     fun downloadVideo(context: Context, videoSource: String, title: String, coroutineScope: CoroutineScope) {
         if (videoSource.isBlank()) {
@@ -77,7 +77,7 @@ object ImageDownloadHelper {
         coroutineScope.launch {
             val saved = withContext(Dispatchers.IO) { saveVideoToDownloads(context, videoSource, title) }
             if (saved != null) {
-                Toast.makeText(context, "Video saved to Downloads/AntiGem", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Video saved to Downloads/YouTube Automation", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(context, "Failed to save video", Toast.LENGTH_SHORT).show()
             }
@@ -120,7 +120,7 @@ object ImageDownloadHelper {
                 val values = ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                     put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/AntiGem")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/YouTube Automation")
                     put(MediaStore.MediaColumns.IS_PENDING, 1)
                 }
                 val resolver = context.contentResolver
@@ -132,7 +132,7 @@ object ImageDownloadHelper {
                     resolver.update(uri, values, null, null)
                 }
             } else {
-                val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "AntiGem").apply { mkdirs() }
+                val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "YouTube Automation").apply { mkdirs() }
                 val target = File(dir, fileName)
                 target.outputStream().use { out -> stream.copyTo(out) }
                 Uri.fromFile(target)
@@ -176,7 +176,7 @@ object ImageDownloadHelper {
                 val contentValues = ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                     put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/AntiGem")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/YouTube Automation")
                     put(MediaStore.MediaColumns.IS_PENDING, 1)
                 }
 
@@ -195,7 +195,7 @@ object ImageDownloadHelper {
 
                 Pair(itemUri, mimeType)
             } else {
-                val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "AntiGem")
+                val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "YouTube Automation")
                 if (!downloadsDir.exists()) downloadsDir.mkdirs()
                 val targetFile = File(downloadsDir, fileName)
                 targetFile.writeBytes(bytes)
@@ -242,7 +242,7 @@ object ImageDownloadHelper {
                     com.example.gemini.data.remote.AgyBridgeService.instance.client else OkHttpClient()
                 val req = Request.Builder()
                     .url(fixedSource)
-                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 AntiGem/1.0")
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 YouTube Automation/1.0")
                     .get()
                     .build()
                 client.newCall(req).execute().use { resp ->

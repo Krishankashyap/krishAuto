@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# antiGem Go IDE Server - Interactive Android ARM64 Builder & ADB Deployer
+# YouTube Automation Go IDE Server - Interactive Android ARM64 Builder & ADB Deployer
 # ==============================================================================
 
 set -eo pipefail
@@ -38,7 +38,7 @@ cat << 'EOF'
  ▀         ▀  ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀       ▀▀▀ 
 EOF
 
-echo -e "${ORANGE}${BOLD}⚡ antiGem Go IDE Server Builder & Deployer${NC}"
+echo -e "${ORANGE}${BOLD}⚡ YouTube Automation Go IDE Server Builder & Deployer${NC}"
 echo -e "${DIM}================================================================${NC}"
 
 # --- Pre-flight Checks ---

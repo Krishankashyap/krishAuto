@@ -1,6 +1,6 @@
 # 08 — GitHub Integration
 
-GitHub is the world's most popular platform for hosting and sharing code. AntiGem integrates directly with the official GitHub CLI (`gh`), allowing you to authenticate, clone your repositories into local or server workspaces, configure Git credentials and commit signatures, and launch new repositories.
+GitHub is the world's most popular platform for hosting and sharing code. YouTube Automation integrates directly with the official GitHub CLI (`gh`), allowing you to authenticate, clone your repositories into local or server workspaces, configure Git credentials and commit signatures, and launch new repositories.
 
 ---
 
@@ -8,7 +8,7 @@ GitHub is the world's most popular platform for hosting and sharing code. AntiGe
 
 > ℹ️ **Build Requirement**: The GitHub settings page appears only in the `com.termux` package build (`LocalEnvironmentManager.isTermuxPackage`). In standalone builds, the GitHub page is hidden from settings.
 
-When you navigate to **Settings → GitHub**, AntiGem checks whether the GitHub CLI is available:
+When you navigate to **Settings → GitHub**, YouTube Automation checks whether the GitHub CLI is available:
 - **Checking**: You will see *"Checking the terminal for the GitHub CLI…"* (or *"Checking the server for the GitHub CLI…"* when connected in Server mode).
 - **Environment Badge**: An indicator pill displays **Runs on: This phone** or **Runs on: Server**, ensuring you know whether commands and credentials live locally in Termux or on your remote server.
 - **CLI Not Installed**: If `gh` is missing, an **Install GitHub CLI** card appears. On your phone, tap **Install gh** to install the package automatically via `pkg`. On a remote server, commands are suggested (`sudo apt install gh`, `sudo dnf install gh`, or `brew install gh`) alongside an **Install guide** button and a **Refresh** button.
@@ -21,10 +21,10 @@ Once `gh` is detected (showing its version, e.g. **gh version** `2.x.x`), the **
 
 ### Method A: Browser Sign-In (Recommended)
 1. Tap **Sign in with browser**.
-2. AntiGem contacts GitHub and displays **Your one-time code** — a large, bold monospace code.
+2. YouTube Automation contacts GitHub and displays **Your one-time code** — a large, bold monospace code.
 3. Tap **Copy code & open GitHub**. The one-time code is immediately copied to your clipboard and your browser opens to `github.com/login/device`.
-4. In your browser, paste the one-time code and approve access for AntiGem.
-5. Return to AntiGem: the prompt changes from *"Waiting for you to approve in the browser…"* to *"Finishing sign-in and setting up git…"*, and automatically loads your profile.
+4. In your browser, paste the one-time code and approve access for YouTube Automation.
+5. Return to YouTube Automation: the prompt changes from *"Waiting for you to approve in the browser…"* to *"Finishing sign-in and setting up git…"*, and automatically loads your profile.
 
 ### Method B: Personal Access Token Sign-In
 1. Below the browser button, tap **Use a personal access token instead** (tap **Hide token sign-in** to collapse it).
@@ -70,7 +70,7 @@ The **Repositories** card lists your repositories:
 - **Reloading & Search**: Tap the refresh icon (**Reload repositories**) to fetch recent changes. Type into the **Search repositories** bar to filter your projects by name, language, or description.
 - **Repository Badges**: Every repository lists its privacy status (**Private** or public), whether it is a **Fork**, or if it is **Archived**, along with its programming language, star count (`★`), and last updated date.
 - **Repository Actions**: Tap any repository in the list to reveal its action menu:
-  - **Clone and open**: Downloads the repository to your workspace storage and opens it directly in the AntiGem IDE as an active project.
+  - **Clone and open**: Downloads the repository to your workspace storage and opens it directly in the YouTube Automation IDE as an active project.
   - **Open on GitHub**: Opens the repository's GitHub web page in your external browser.
   - **Copy clone URL**: Copies the HTTPS Git URL to your clipboard for use in scripts or terminal commands.
 - **Paging**: Tap **Show more** at the bottom of the list to load additional repositories in batches of 30.
@@ -79,7 +79,7 @@ The **Repositories** card lists your repositories:
 
 ## 🚀 5. Creating New Repositories
 
-AntiGem does not have a manual "New repository" form button on the GitHub settings screen. Instead, repository creation is streamlined through the assistant or the command line:
+YouTube Automation does not have a manual "New repository" form button on the GitHub settings screen. Instead, repository creation is streamlined through the assistant or the command line:
 
 1. **Via Jarvis Voice & Tool Assistant**:
    - Tell Jarvis: *"Create a new private GitHub repository called my-cool-project"* or *"Put this project on GitHub"*.

@@ -406,7 +406,7 @@ object YouTubeMediaSessionManager {
         ensureChannelCreated(context)
         registerReceiver(context)
 
-        mediaSession = MediaSession(context, "AntiGemYouTubeMedia").apply {
+        mediaSession = MediaSession(context, "YouTubeAutomationMedia").apply {
             setCallback(object : MediaSession.Callback() {
                 override fun onPlay() {
                     runOnMainThread { play() }

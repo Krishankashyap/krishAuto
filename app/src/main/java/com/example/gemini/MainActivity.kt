@@ -166,9 +166,9 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(isFloatingDiagnosticsEnabled) {
                 if (isFloatingDiagnosticsEnabled) {
-                    com.example.gemini.data.remote.core.AntiGemLiveDiagnostics.start()
+                    com.example.gemini.data.remote.core.YouTubeAutomationLiveDiagnostics.start()
                 } else {
-                    com.example.gemini.data.remote.core.AntiGemLiveDiagnostics.stop()
+                    com.example.gemini.data.remote.core.YouTubeAutomationLiveDiagnostics.stop()
                 }
             }
 
@@ -673,7 +673,7 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Files opened with or shared to AntiGem. Shared conversations (.antigem) import directly; everything else (one file,
+     * Files opened with or shared to YouTube Automation. Shared conversations (.antigem) import directly; everything else (one file,
      * many files, or plain text / code) asks first: open in the code editor, preview, or save to a folder.
      */
     private fun handleIncomingFileIntent(intent: Intent?) {

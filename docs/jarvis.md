@@ -1,11 +1,11 @@
-# Jarvis: the voice assistant of AntiGem
+# Jarvis: the voice assistant of YouTube Automation
 
-Jarvis lets you use AntiGem by voice, hands-free. Talk to it while you cook, walk or drive, and it opens your projects and
+Jarvis lets you use YouTube Automation by voice, hands-free. Talk to it while you cook, walk or drive, and it opens your projects and
 files, answers questions, starts and watches long jobs for you, reads approvals out loud, changes settings and themes, and
 tells you how the app works.
 
 Jarvis is not a separate AI. It runs on the agent you already use, **Claude Code** or **Antigravity**, in a hidden chat
-of its own, and controls the app through a built-in MCP server called `jarvis_mcp`. It controls **AntiGem only**, not the
+of its own, and controls the app through a built-in MCP server called `jarvis_mcp`. It controls **YouTube Automation only**, not the
 rest of your phone (that is what the separate Android MCP is for).
 
 Jarvis is **off by default**. Nothing listens until you turn it on.
@@ -55,7 +55,7 @@ To use Jarvis with the screen off, turn on **Hands-free mode** (section 2).
 | Trigger | How | Notes |
 | :--- | :--- | :--- |
 | **The orb** | Tap the orb on the edge of the screen. | Long-press it to open the Jarvis panel. |
-| **Quick Settings tile** | Pull down the notification shade, edit the tiles, add **Jarvis**. Tap it to talk. | Works from any app. With hands-free on, it starts listening right away; otherwise it opens AntiGem and listens. |
+| **Quick Settings tile** | Pull down the notification shade, edit the tiles, add **Jarvis**. Tap it to talk. | Works from any app. With hands-free on, it starts listening right away; otherwise it opens YouTube Automation and listens. |
 | **Notification** | With hands-free on, the Jarvis notification has **Talk / Send / Stop**. | |
 | **Headset or Bluetooth button** | One press talks (or sends while listening); two presses stop. | Needs hands-free mode. Works while no music app has taken the media button. |
 | **Wake phrase** | Say "Hey Jarvis" (or your own phrases). | Needs hands-free mode and **Trigger: Wake phrase too**. |
@@ -174,7 +174,7 @@ These are handled on the phone, without asking the AI, so they are immediate:
 
 ## 7. What you can ask
 
-Anything you would ask the agent itself, plus direct control of AntiGem. Some examples:
+Anything you would ask the agent itself, plus direct control of YouTube Automation. Some examples:
 
 **The app**
 - "Open the antigem project and MainActivity."
@@ -287,7 +287,7 @@ recognizer for the rest of the session.
   which matters in languages like Hindi ("main kar **rahi** hoon" / "main kar **raha** hoon"). Pick a matching voice under
   Voice output.
 - **About you and extra instructions:** anything Jarvis should always know, for example
-  *"Call me Santosh. Reply in Hinglish. I mostly work on the antigem project."*
+  *"Call me Krishan. Reply in Hinglish. I mostly work on my YouTube videos."*
 
 Both are sent with the first message of every Jarvis chat. When you change them, the open chat is told with your next
 message.

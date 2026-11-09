@@ -1,14 +1,14 @@
 # Create extensions through the developer MCP
 
-Add **Custom AntiGem Plugin Developer** from the app's MCP presets once. The model can then retrieve this SDK, create/edit draft files, package, install/update, enable/disable, reload, test and inspect logs through MCP. It does not need the app source tree or a separate Terminal MCP for a basic extension.
+Add **Custom YouTube Automation Plugin Developer** from the app's MCP presets once. The model can then retrieve this SDK, create/edit draft files, package, install/update, enable/disable, reload, test and inspect logs through MCP. It does not need the app source tree or a separate Terminal MCP for a basic extension.
 
 The developer server is separate from each extension's normal MCP server. Its endpoint is `http://127.0.0.1:8765/extension_developer` in the Termux app, with the app's `X-Device-Id` header. The preset supplies these values; other app variants use their own local bridge port. It exposes only the developer tools listed below, not all installed extension tools.
 
 ## Tell the model
 
-> Use Custom AntiGem Plugin Developer MCP to create an extension for: [describe the task and website]. Start by calling webview_extension_docs and reading developer-mcp.md, lifecycle.md and the relevant API reference. Create a draft, implement and validate its tool arguments, write skills/*.md guides for how to use those tools (read skills.md), install it, inspect the registered tools, and test the requested behavior. Use the error logs to fix and update it until it works. Tell me the final extension ID, what it does, and the test results.
+> Use Custom YouTube Automation Plugin Developer MCP to create an extension for: [describe the task and website]. Start by calling webview_extension_docs and reading developer-mcp.md, lifecycle.md and the relevant API reference. Create a draft, implement and validate its tool arguments, write skills/*.md guides for how to use those tools (read skills.md), install it, inspect the registered tools, and test the requested behavior. Use the error logs to fix and update it until it works. Tell me the final extension ID, what it does, and the test results.
 
-The initial MCP setup is the only manual app configuration needed for this development loop. A model must actually have the developer MCP attached; mentioning its name alone does not connect a server. An installed extension's own MCP can be added later through **Custom AntiGem Plugin MCP → choose extension** for normal use.
+The initial MCP setup is the only manual app configuration needed for this development loop. A model must actually have the developer MCP attached; mentioning its name alone does not connect a server. An installed extension's own MCP can be added later through **Custom YouTube Automation Plugin MCP → choose extension** for normal use.
 
 ## Complete development loop
 
@@ -83,6 +83,6 @@ Calls to reload, update or disable interrupt in-memory work. Generations/network
 
 ## PC development
 
-Without the app source, download the SDK on the phone (**Custom AntiGem Plugins → Repositories → Plugin SDK for PC**) and follow [pc-development.md](pc-development.md). When working in a cloned repository, read `extension_docs/README.md` and follow its links. The normal app runtime sources remain in their existing repository location; no copies are needed in this SDK or in an extension ZIP. The SDK's example files and JSON schemas are already inside this folder.
+Without the app source, download the SDK on the phone (**Custom YouTube Automation Plugins → Repositories → Plugin SDK for PC**) and follow [pc-development.md](pc-development.md). When working in a cloned repository, read `extension_docs/README.md` and follow its links. The normal app runtime sources remain in their existing repository location; no copies are needed in this SDK or in an extension ZIP. The SDK's example files and JSON schemas are already inside this folder.
 
 To test PC-authored code on the phone, use an existing ADB/device connection, transfer the ZIP into the phone's terminal home/shared storage, then call install with zip_path. Alternatively use create/write_files through this MCP, which writes directly on the phone. MCP file paths always refer to the phone, not the PC filesystem. The app must be running; an external client needs access to the forwarded bridge port and the correct device header.
