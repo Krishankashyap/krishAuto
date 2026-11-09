@@ -80,7 +80,7 @@ object ConversationExportHelper {
             }
 
             // Save to Downloads/YouTube Automation/Exports
-            val (savedUri, mimeType, savedFileName) = saveToYouTube AutomationExports(context, fileName, content, format.mimeType)
+            val (savedUri, mimeType, savedFileName) = saveToYouTubeAutomationExports(context, fileName, content, format.mimeType)
 
             withContext(Dispatchers.Main) {
                 if (savedUri != null) {
@@ -128,7 +128,7 @@ object ConversationExportHelper {
         }
     }
 
-    private fun saveToYouTube AutomationExports(
+    private fun saveToYouTubeAutomationExports(
         context: Context,
         fileName: String,
         content: String,
