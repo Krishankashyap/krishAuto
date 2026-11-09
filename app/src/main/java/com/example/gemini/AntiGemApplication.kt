@@ -58,8 +58,8 @@ class AntiGemApplication : Application(), coil.ImageLoaderFactory {
         TelemetryDeck.start(
             this,
             TelemetryDeck.Builder()
-                .appID("D98008E6-EEE4-4BBC-97A2-E3790251AECF")
-                .namespace("com.santoshkurmi")
+                .appID("FEC6B4AC-18BA-4307-80CD-12A1107140C8")
+                .namespace("com.krishankashyap")
                 .defaultUser(SimpleTelemetryId.getUniqueUserId(this))
                 .testMode(BuildConfig.DEBUG)
                 .showDebugLogs(BuildConfig.DEBUG)
@@ -84,6 +84,6 @@ class AntiGemApplication : Application(), coil.ImageLoaderFactory {
 
     private companion object {
         // SHA-256 of the release.jks certificate (alias "antigem"). Public, safe to commit.
-        const val RELEASE_CERT_SHA256 = "CCF2C681063BA941641519E4EAC7F024E92880CCD06EED5070DAA9717380F315"
+        const val RELEASE_CERT_SHA256 = "6DF81D24579505C7744516929D54076682A919BCC6FAE15538D100B0291214D7"
     }
 }
