@@ -76,6 +76,14 @@ object PluginRepositories {
         prefs.getString("repos", null)?.let { stored ->
             runCatching { val array = JSONArray(stored); repos.addAll((0 until array.length()).map { parse(array.getString(it)) }) }
         }
+        // Migrate the old default repository to our own repo on first launch after the repointing:
+        // the old build stored dipeshkrydv/antigem_plugins and already set default_repo_added,
+        // so without this the new default would never be added on upgrade.
+        if (repos.removeAll { it.slug.equals("dipeshkrydv/antigem_plugins", ignoreCase = true) || it.slug.equals("santoshkurmi/antigem_plugins", ignoreCase = true) }) {
+            val migrated = parse(DEFAULT_REPO)
+            if (repos.none { it.label.equals(migrated.label, ignoreCase = true) }) repos.add(0, migrated)
+            persist()
+        }
         // The official repository is added once, for new and existing users; if the user removes it, it stays removed
         if (!prefs.getBoolean(DEFAULT_REPO_ADDED, false)) {
             val official = parse(DEFAULT_REPO)
