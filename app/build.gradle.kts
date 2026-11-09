@@ -154,6 +154,8 @@ dependencies {
   implementation(libs.androidx.activity.compose)
   implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
   implementation("androidx.work:work-runtime-ktx:2.10.0")
+  // Chrome Custom Tabs (Google sign-in opens in a Custom Tab so Google accepts it)
+  implementation("androidx.browser:browser:1.8.0")
 
   // Arch Components
   implementation(libs.androidx.lifecycle.runtime.compose)

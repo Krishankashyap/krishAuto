@@ -8,6 +8,8 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
+import androidx.browser.customtabs.CustomTabsClient
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -2591,8 +2593,19 @@ fun ChatScreen(
             isLocalToolsInstalled = isLocalToolsInstalled,
             onLoginWithGoogle = {
                 val url = viewModel.getGoogleOAuthUrl()
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                context.startActivity(intent)
+                val uri = Uri.parse(url)
+                // Google blocks sign-in from embedded WebViews / unrecognized
+                // browsers ("disallowed_useragent"), so open the auth URL in a
+                // Chrome Custom Tab, which Google accepts. Falls back to the
+                // system browser when no Custom Tabs provider is installed.
+                val customTabsPackage = CustomTabsClient.getPackageName(context, null)
+                if (customTabsPackage != null) {
+                    val customTabsIntent = CustomTabsIntent.Builder().build()
+                    customTabsIntent.intent.setPackage(customTabsPackage)
+                    customTabsIntent.launchUrl(context, uri)
+                } else {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                }
             },
             onToggleServer = { enable ->
                 viewModel.toggleOAuthServer(enable)
