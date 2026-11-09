@@ -1,0 +1,7 @@
+scene	cue	kind	what	x	y	size	motion	out	label
+01	@01	bg	paper	-	-	-	-	-	-
+01	@01	img	year_proclamation	.50	.52	.62	pop	-	YEAR OF DESTINY
+02	@02	img	empire_flag	.50	.52	.65	slideR	-	THE EMPIRE STRIKES
+03	@03	img	company_seal	.50	.52	.60	pop	-	EAST INDIA COMPANY
+04	@04	img	himalayan_fort	.50	.55	.65	rise	-	THE MOUNTAIN CITADEL
+05	@05	img	warrior_hero	.50	.52	.68	pop	-	THE 600 DEFENDERS

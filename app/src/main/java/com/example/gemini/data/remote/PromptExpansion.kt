@@ -92,7 +92,7 @@ object PromptExpansion {
         }
         // The skill text arrives either way; only the plugin's own tools need its MCP server
         lines += if (plugin.toolCount > 0) {
-            "- The plugin's own tools come from the MCP server \"$server\". Check whether the task depends on them. If it does and you don't have that server's tools, stop and ask the user to enable it in MCP settings → Custom YouTube Automation Plugin MCP. If it doesn't, do the task with the tools you already have."
+            "- The plugin's own tools come from the MCP server \"$server\". Check whether the task depends on them. If it does and you don't have that server's tools, stop and ask the user to enable it in MCP settings → Custom AutoKrish Plugin MCP. If it doesn't, do the task with the tools you already have."
         } else {
             "- This plugin has no tools of its own: follow its instructions with the tools you already have."
         }

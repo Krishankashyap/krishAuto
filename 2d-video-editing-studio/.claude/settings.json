@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*flow.*__(flow|deepx)_(generate|batch|storyboard|create_scene|chain|auto_chain|extend|edit|upscale|character|auto_character|rapid).*",
+        "hooks": [{ "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/hooks/flow_guard_hook.py\"", "timeout": 150 }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__.*flow.*__(flow|deepx)_(generate|batch|storyboard|create_scene|chain|auto_chain|extend|edit|upscale|character|auto_character|rapid|get_job|video_status|check_status).*",
+        "hooks": [{ "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/hooks/flow_guard_hook.py\"", "timeout": 30 }]
+      }
+    ]
+  }
+}

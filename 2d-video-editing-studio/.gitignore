@@ -1,0 +1,53 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments & virtualenvs
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Secrets & Local credentials
+*api_key*
+*API_KEY*
+*.pem
+*.key
+
+# Large video render projects & caches
+projects/
+_stills/
+elements/raw/
+elements/cut/
+*.mp4
+*.m4v
+*.avi
+*.mov
+*.zip
+*.tar.gz
+*.bak
+*.tmp
+*.log
+
+# Flow Bridge Runtime Ledgers
+.deepesh_flow_guard.json
+flow_manifest.json
+elements/registry.json
+
+# Local subfolder duplicate
+deepesh_mobile_studio/
+
+# OS / Editor specific
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local Style Reference photo datasets
+stick man style /
+sticker style /
+vox style/
+

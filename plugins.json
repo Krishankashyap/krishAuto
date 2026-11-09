@@ -1,3 +1,21 @@
 {
-  "plugins": []
+  "name": "AutoKrish Plugins",
+  "plugins": [
+    {
+      "path": "2d-video-editing-studio",
+      "id": "2d-video-editing-studio",
+      "name": "2D Video Editing Studio",
+      "version": "3.2.0",
+      "description": "Senior Video Editor & Autonomous 2D Production Engine (v3.2): Broadcast-quality Vox explainers, Bento Box data cards, Stickman storytelling, die-cut Sticker collages, Crime Noir thrillers, and 8-bit Arcade videos with 3-Tier Google Flow Rapid Parallel Engine (Flow Connector CLI + AntiGem WebView FlowClient + DeepX Bridge), 25 creative Latin/Devanagari fonts, and quintic smooth transitions.",
+      "icon": "icon.png"
+    },
+    {
+      "path": "facebook-automation",
+      "id": "facebook-automation",
+      "name": "Facebook Automation & SEO Studio",
+      "version": "1.3.0",
+      "description": "Senior Social Media Manager & Production-grade Facebook automation engine for AntiGem Mobile Browser (m.facebook.com & www.facebook.com), Kiwi Browser, Termux, and Desktop: precision visualViewport touch coordinates, 4-tier media attachment with DOM preview verification, 1-touch unified Photo + Deep Quote + Viral Hook + Hashtags publishing, scheduling, anti-duplicate protection, and post re-edit/delete.",
+      "icon": "icon.png"
+    }
+  ]
 }

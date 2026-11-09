@@ -47,7 +47,7 @@ Plugin Developer, Stitch, and Jarvis (this voice control). The Jarvis server mus
 Settings → Jarvis → Setup has a one-tap Add button.
 """.trim()),
             Entry("plugins", listOf("plugin", "extension", "skill", "install plugin", "/plu"), """
-Custom YouTube Automation plugins (Settings → Custom YouTube Automation Plugins) add MCP tools and skills. Install from a ZIP or a GitHub repository;
+Custom AutoKrish plugins (Settings → Custom AutoKrish Plugins) add MCP tools and skills. Install from a ZIP or a GitHub repository;
 enable, disable, reload and update without restarting. In a chat, type /plu: to use a plugin or one of its skills.
 Your own slash commands that expand into full prompts are in Settings → Slash Commands.
 """.trim()),

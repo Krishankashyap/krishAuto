@@ -1,0 +1,111 @@
+{
+ "style": "noir",
+ "aspect": "16:9",
+ "fps": 24,
+ "captions": "auto",
+ "scenes": [
+  {
+   "at": "@01",
+   "bg": "bg_kot_night",
+   "layout": "hero",
+   "camera": "push_in",
+   "items": [
+    {
+     "type": "kicker",
+     "text": "CASE FILE #1903 BS // KATHMANDU"
+    },
+    {
+     "type": "title",
+     "text": "14 सितंबर _1846_",
+     "at": "चौदह"
+    },
+    {
+     "type": "asset",
+     "name": "ct_khukuri",
+     "at": "अँधेरा",
+     "label": "हथियार"
+    },
+    {
+     "type": "keyword",
+     "text": "हनुमान ढोका — कोत",
+     "at": "कोत",
+     "box": "torn"
+    },
+    {
+     "type": "stamp",
+     "text": "MIDNIGHT",
+     "at": "अँधेरा"
+    }
+   ],
+   "cuts": [
+    {
+     "at": "हनुमान",
+     "frame": "close",
+     "focus": [
+      0.35,
+      0.55
+     ]
+    }
+   ]
+  },
+  {
+   "at": "@03",
+   "bg": "bg_kot_night",
+   "layout": "board",
+   "camera": "drift",
+   "transition": "flash",
+   "items": [
+    {
+     "type": "kicker",
+     "text": "PRIME SUSPECT"
+    },
+    {
+     "type": "keyword",
+     "text": "~प्रधान~ संदिग्ध",
+     "at": "नाम"
+    },
+    {
+     "type": "photo",
+     "src": "bg_kot_night",
+     "crop": [
+      0.3,
+      0.1,
+      0.7,
+      0.9
+     ],
+     "caption": "कोत",
+     "slot": "a"
+    },
+    {
+     "type": "photo",
+     "src": "bg_kot_night",
+     "crop": [
+      0.0,
+      0.0,
+      0.5,
+      1.0
+     ],
+     "caption": "जंग बहादुर",
+     "slot": "c",
+     "at": "जंग"
+    },
+    {
+     "type": "string",
+     "from": "a",
+     "to": "c",
+     "at": "बहादुर"
+    },
+    {
+     "type": "stamp",
+     "text": "PRIME SUSPECT",
+     "at": "कुँवर"
+    }
+   ]
+  }
+ ],
+ "highlight_words": [
+  "कोत",
+  "जंग"
+ ],
+ "cue_lead": 0.08
+}

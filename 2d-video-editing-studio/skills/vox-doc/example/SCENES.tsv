@@ -1,0 +1,157 @@
+scene	cue	kind	what	x	y	size	motion	out	label
+01	@01	bg	paper	-	-	-	-	-	-
+01	अरुणाचल	img	india_map	.24	.55	.80	pop	-	-
+01	अरुणाचल	pin	arunachal	-	-	-	-	-	-
+01	प्रदेश	img	arunachal_map	.58	.24	.26	pop	-	अरुणाचल प्रदेश
+01	प्रदेश	rule	arunachal>.50,.30	-	-	-	-	-	-
+01	सूरज	img	sunrise_hills	.64	.74	.38	rise	-	-
+01	चार	clock	4:00	.87	.30	.28	pop	-	सुबह 4 बजे
+02	@02	img	office	.32	.56	.60	slideL	-	दफ़्तर
+02	दस	clock	10:00	.74	.38	.40	pop	-	सुबह 10 बजे
+02	खुलते	text	KEY	.74	.84	-	-	-	सूरज निकलने के 6 घंटे बाद
+03	@03	img	india_map	.17	.55	.74	pop	-	-
+03	@03	img	india_gate	.50	.58	.52	rise	-	-
+03	घड़ी	clock	10:00	.83	.38	.34	pop	-	-
+03	दिल्ली	pin	delhi	-	-	-	-	-	दिल्ली
+03	दिल्ली	text	KEY	.83	.74	-	-	-	घड़ी दिल्ली की
+04	@04	img	india_map	.50	.54	.74	pop	-	-
+04	पूरब	text	LBL	.86	.56	-	-	-	पूरब →
+04	पश्चिम	text	LBL	.14	.56	-	-	-	← पश्चिम
+04	तीन	text	NUM	.50	.09	-	-	-	≈ 3,000 किमी
+05	@05	img	india_map	.50	.54	.84	hold	-	-
+05	गुजरात	pin	gujarat	-	-	-	-	-	-
+05	गुजरात	img	gujarat_map	.12	.76	.28	slideL	-	गुजरात
+05	गुजरात	rule	gujarat>.14,.62	-	-	-	-	-	-
+05	अरुणाचल	pin	arunachal	-	-	-	-	-	-
+05	अरुणाचल	img	arunachal_map	.87	.74	.24	slideR	-	अरुणाचल प्रदेश
+05	अरुणाचल	rule	arunachal>.86,.62	-	-	-	-	-	-
+05	तीस	rule	gujarat>arunachal	-	-	-	-	-	-
+05	तीस	text	NUM	.50	.09	-	-	-	30°
+06	@06	img	sun	.50	.20	.22	pop	-	-
+06	@06	img	gujarat_map	.24	.20	.24	pop	-	-
+06	@06	img	arunachal_map	.76	.20	.22	pop	-	-
+06	हिसाब	clock	6:00	.24	.60	.38	pop	-	गुजरात
+06	हिसाब	clock	8:00	.76	.60	.38	pop	-	अरुणाचल
+06	दो	text	NUM	.50	.60	-	-	-	+2 घंटे
+07	@07	bg	paper	-	-	-	-	-	-
+07	-	img	gujarat_map	.24	.20	.24	hold	-	-
+07	-	img	arunachal_map	.76	.20	.22	hold	-	-
+07	पूरे	clock	6:00>7:00	.24	.60	.38	hold	-	गुजरात
+07	पूरे	clock	8:00>7:00	.76	.60	.38	hold	-	अरुणाचल
+07	एक	text	KEY	.50	.90	-	-	-	पूरे देश में एक ही समय
+08	@08	clock	7:00	.28	.48	.46	pop	-	भारत का समय (IST)
+08	शहर	img	city	.72	.54	.56	rise	-	-
+08	नहीं	cross	-	.72	.54	.50	-	-	-
+09	@09	img	india_map	.50	.54	.84	hold	-	-
+09	बयासी	vline	mirzapur	-	-	-	-	-	-
+09	बयासी	text	NUM	.18	.14	-	-	-	82.5° पूर्व
+09	देशांतर	text	LBL	.18	.26	-	-	-	IST की रेखा
+10	@10	img	india_map	.50	.54	.84	hold	-	-
+10	@10	vline	mirzapur	-	-	-	hold	-	-
+10	@10	text	NUM	.18	.14	-	hold	-	82.5° पूर्व
+10	मिर्ज़ापुर	pin	mirzapur	-	-	-	-	-	मिर्ज़ापुर
+10	मिर्ज़ापुर	img	up_map	.84	.30	.30	pop	-	उत्तर प्रदेश
+10	मिर्ज़ापुर	rule	mirzapur>.76,.32	-	-	-	-	-	-
+10	मिर्ज़ापुर	img	mirzapur	.84	.76	.28	slideR	-	-
+11	अंग्रेज़ी	text	TAG	.15	.08	-	-	-	अंग्रेज़ी राज
+11	बंबई	img	india_map	.50	.55	.82	pop	-	-
+11	बंबई	pin	bombay	-	-	-	-	-	बंबई
+11	बंबई	img	maharashtra_map	.15	.80	.22	pop	-	महाराष्ट्र
+11	बंबई	rule	bombay>.20,.76	-	-	-	-	-	-
+11	कलकत्ता	pin	calcutta	-	-	-	-	-	कलकत्ता
+11	कलकत्ता	img	bengal_map	.85	.80	.24	pop	-	पश्चिम बंगाल
+11	कलकत्ता	rule	calcutta>.82,.72	-	-	-	-	-	-
+11	घड़ियाँ	clock	10:58	.15	.34	.26	pop	-	बंबई टाइम
+11	घड़ियाँ	clock	12:00	.85	.34	.26	pop	-	कलकत्ता टाइम
+12	@12	img	bombay	.20	.72	.38	rise	-	बंबई
+12	@12	img	calcutta	.80	.72	.38	rise	-	कलकत्ता
+12	उन्नीस	text	NUM	.50	.10	-	-	-	1906
+12	एक	clock	10:58>11:30	.20	.33	.28	hold	-	-
+12	एक	clock	12:00>11:30	.80	.33	.28	hold	-	-
+12	तय	img	gazette	.50	.56	.44	pop	-	एक समय: IST
+13	@13	img	calcutta	.26	.58	.56	pop	-	कलकत्ता
+13	कलकत्ता	img	bengal_map	.56	.50	.40	pop	-	पश्चिम बंगाल
+13	घड़ी	clock	12:00	.84	.34	.30	pop	-	कलकत्ता टाइम
+13	चालीस	text	NUM	.74	.86	-	-	-	1906 → 1948
+14	@14	bg	paper	-	-	-	-	-	-
+14	घड़ी	clock	7:00	.24	.44	.40	pop	-	एक घड़ी
+14	क़ीमत	img	price_tag	.40	.64	.24	pop	-	-
+14	पूरब	img	india_map	.74	.54	.80	slideR	-	-
+14	पूरब	pin	northeast	-	-	-	-	-	पूरब
+15	सर्दियों	text	TAG	.13	.08	-	-	-	सर्दियाँ
+15	पूर्वोत्तर	img	india_map	.16	.58	.56	pop	-	-
+15	पूर्वोत्तर	pin	northeast	-	-	-	-	-	पूर्वोत्तर
+15	पूर्वोत्तर	img	dusk_hills	.48	.62	.48	rise	-	-
+15	चार	clock	4:00	.82	.40	.34	pop	-	शाम 4 बजे
+15	अंधेरा	bg	night	-	-	-	-	-	-
+15	अंधेरा	img	moon	.56	.16	.18	pop	-	-
+16	@16	bg	night	-	-	-	-	-	-
+16	@16	img	moon	.50	.14	.16	hold	-	-
+16	स्कूल	img	school_kid	.28	.60	.58	slideL	-	स्कूल: अंधेरे में खुले
+16	दफ़्तर	img	office_night	.72	.58	.62	slideR	-	दफ़्तर: अंधेरे में बंद
+17	@17	bg	paper	-	-	-	-	-	-
+17	रौशनी	img	sun	.30	.44	.40	pop	शाम	दिन की धूप
+17	बेकार	cross	-	.30	.44	.42	-	शाम	-
+17	शाम	bg	night	-	-	-	-	-	-
+17	बिजली	img	bulb	.62	.42	.40	pop	-	बिजली
+17	जलती	img	meter	.84	.60	.34	rise	-	-
+18	@25	bg	paper	-	-	-	-	-	-
+18	दुनिया	img	globe	.50	.45	.62	pop	-	-
+18	अलग-अलग	text	KEY	.50	.90	-	-	-	हर देश का अपना तरीक़ा
+19	रूस	img	russia_map	.18	.26	.30	slideL	-	-
+19	ग्यारह	clocks	11	.64	.24	.095	pop	-	रूस: 11 टाइम ज़ोन
+19	अमेरिका	img	usa_map	.18	.70	.30	slideL	-	-
+19	अमेरिका	clocks	6	.64	.68	.095	pop	-	अमेरिका: 6
+20	@27	img	china_map	.30	.54	.70	pop	-	चीन
+20	भारत	img	india_map	.76	.54	.56	pop	-	भारत
+20	चौड़ा	text	KEY	.50	.09	-	-	-	चीन भारत से भी चौड़ा
+21	पर	img	china_map	.30	.52	.74	hold	-	-
+21	घड़ी	clock	8:00	.78	.36	.36	pop	-	पूरे चीन में एक समय
+21	बीजिंग	pin	beijing	-	-	-	-	-	बीजिंग
+21	बीजिंग	img	beijing	.80	.80	.24	rise	-	-
+22	@28	img	china_map	.50	.60	.62	hold	-	-
+22	शिनजियांग	pin	xinjiang	-	-	-	-	-	शिनजियांग
+22	सरकारी	clock	10:00	.84	.28	.30	pop	-	सरकारी घड़ी (बीजिंग)
+22	लोगों	clock	8:00	.16	.28	.30	pop	-	लोगों की घड़ी
+22	अलग-अलग	text	NUM	.16	.64	-	-	-	−2 घंटे
+23	@18	img	question	.50	.44	.56	pop	-	-
+23	बदलते	text	KEY	.50	.86	-	-	-	तो बदलते क्यों नहीं?
+24	@19	text	TAG	.17	.08	-	-	-	सबसे बड़ा डर
+24	रेलवे	img	train	.50	.56	.40	slideR	-	रेलवे
+25	हज़ारों	img	junction	.34	.56	.64	rise	-	हज़ारों ट्रेनें
+25	समय	clock	7:00	.78	.40	.38	pop	-	एक ही टाइम-टेबल
+26	@20	bg	paper	-	-	-	-	-	-
+26	तकनीकी	text	KEY	.50	.10	-	-	बाँट	सवाल तकनीकी नहीं…
+26	दो	clock	7:00	.16	.34	.26	pop	-	-
+26	दो	clock	8:00	.84	.34	.26	pop	-	-
+26	देश	img	crowd	.50	.62	.58	rise	-	-
+26	बाँट	vline	-	.50	.58	.80	-	-	-
+26	बाँट	text	KEY	.50	.10	-	-	-	क्या देश बँट जाएगा?
+27	दो	text	NUM	.50	.10	-	-	-	2018
+27	प्रयोगशाला	img	scientist	.26	.60	.64	rise	-	राष्ट्रीय भौतिक प्रयोगशाला
+27	टाइम	clock	7:00	.60	.34	.26	pop	-	IST-I
+27	टाइम	clock	8:00	.84	.34	.26	pop	-	IST-II (पूर्वोत्तर)
+27	प्रस्ताव	img	report	.72	.76	.30	pop	-	प्रस्ताव
+28	@30	bg	paper	-	-	-	-	-	-
+28	फ़ाइलों	img	files	.32	.56	.64	rise	-	फ़ाइलों में बंद
+28	घड़ी	clock	7:00	.74	.40	.40	pop	-	घड़ी वहीं की वहीं
+29	@21	bg	paper	-	-	-	-	-	-
+29	असम	img	india_map	.24	.56	.80	pop	-	-
+29	असम	pin	assam	-	-	-	-	-	-
+29	असम	img	assam_map	.60	.26	.22	pop	-	असम
+29	असम	rule	assam>.54,.30	-	-	-	-	-	-
+29	असम	img	tea_garden	.80	.68	.42	slideR	-	-
+29	पहले	text	KEY	.24	.07	-	-	-	बहुत पहले
+30	@22	bg	paper	-	-	-	-	-	-
+30	चाय	img	tea_worker	.28	.58	.66	slideL	-	चाय बाग़ान
+30	बागान	text	KEY	.73	.12	-	-	-	बागान टाइम
+30	IST	clock	7:00	.60	.46	.30	pop	-	IST
+30	पूरा	clock	7:00>8:00	.86	.46	.30	pop	-	बागान टाइम
+30	आगे	text	NUM	.73	.82	-	-	-	+1 घंटा
+31	सौ	img	pocket_watch	.36	.52	.58	pop	-	-
+31	सौ	text	NUM	.70	.50	-	-	-	100 साल
+32	@24	clock	7:00	.28	.38	.36	pop	-	IST
+32	दूसरी	clock	8:00	.72	.38	.36	pop	-	बागान टाइम
+32	मौजूद	text	KEY	.50	.10	-	-	-	दूसरी घड़ी पहले से चल रही है
+32	सरकारी	img	stamp	.50	.76	.28	pop	-	सरकारी मान्यता
+32	नहीं	cross	-	.50	.76	.30	-	-	-

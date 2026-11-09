@@ -1,0 +1,27 @@
+{
+  "name": "facebook-automation",
+  "displayName": "Facebook Automation & SEO Studio",
+  "version": "1.3.0",
+  "description": "Senior Social Media Manager & Production-grade Facebook automation engine for AntiGem Mobile Browser (m.facebook.com & www.facebook.com), Kiwi Browser, Termux, and Desktop: precision visualViewport touch coordinates, 4-tier media attachment with DOM preview verification, 1-touch unified Photo + Deep Quote + Viral Hook + Hashtags publishing, scheduling, anti-duplicate protection, and post re-edit/delete.",
+  "author": {
+    "name": "Dipesh Kr Yadav",
+    "url": "https://github.com/Dipeshkrydv/antigem_plugins"
+  },
+  "icon": "icon.png",
+  "homepage": "https://github.com/Dipeshkrydv/antigem_plugins",
+  "repository": "https://github.com/Dipeshkrydv/antigem_plugins",
+  "keywords": [
+    "facebook",
+    "automation",
+    "social-media",
+    "reels",
+    "stories",
+    "seo",
+    "anti-duplicate",
+    "antigem-browser",
+    "kiwi-browser",
+    "mobile",
+    "termux",
+    "mcp"
+  ]
+}

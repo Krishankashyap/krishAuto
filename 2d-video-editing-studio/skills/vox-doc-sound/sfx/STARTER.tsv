@@ -1,0 +1,37 @@
+category	name	seconds	loop	prompt
+Whoosh	whoosh_soft_short_a	0.7	0	a soft, airy, short whoosh for a clean motion graphics transition, smooth and subtle, no impact, no tail
+Whoosh	whoosh_soft_long_a	1.4	0	a gentle cinematic air whoosh passing left to right, smooth and soft, documentary style transition, no impact
+Whoosh	swipe_fast_a	0.5	0	a quick light air swipe, like a paper cutout sliding fast into frame, crisp and soft
+Whoosh	map_zoom_a	1.2	0	a smooth zoom whoosh like a camera zooming into a map, soft airy rise then a gentle settle, documentary motion graphics
+PopClick	pop_soft_a	0.5	0	a clearly audible soft round pop for a picture appearing on screen, gentle and clean, short
+PopClick	pop_soft_b	0.5	0	a soft muted pop for an icon appearing on screen, clean, gentle, short, modern documentary motion graphics
+PopClick	click_soft_a	0.5	0	a clearly audible soft UI click, crisp short tick with a tiny body, clean, for a text label appearing in an explainer video
+PopClick	click_soft_b	0.5	0	a clearly audible soft crisp UI tick for a number or text label appearing, clean and short
+Map	pin_drop_a	0.6	0	a small soft map pin dropping onto a paper map with a tiny click and a soft thud, clean, short
+Map	pin_drop_b	0.6	0	a clearly audible small map pin landing on a paper map, tiny click with a soft thud, clean
+Map	marker_draw	1.5	0	a felt tip marker drawing a line across paper, smooth and clear, close
+Map	map_unfold	1.5	0	a large paper map being unfolded and spread on a table, crisp paper, close
+Numbers	number_tick_a	1.0	0	a quick series of soft mechanical ticks like a counter rolling up numbers, ending with a gentle click
+Paper	page_turn_a	0.8	0	a single page of a book being turned, crisp and clear, close
+Paper	paper_slide_a	0.8	0	a paper cut-out sliding quickly across a desk, soft crisp paper swish, clean
+Paper	stamp_press	0.8	0	an official rubber stamp pressed firmly onto paper, a solid clear thump
+Paper	highlighter_a	0.6	0	a highlighter marker swiping quickly across paper, soft squeaky felt tip stroke, close and clear
+Paper	paper_tear_a	0.8	0	a sheet of paper being torn quickly, crisp and clear, close
+Stationery	push_pin_a	0.6	0	a push pin pressed into a cork board, a small soft thunk, close
+Stationery	string_pull	0.8	0	a piece of string pulled tight between two pins on a cork board, soft taut twang
+Data	bar_rise_a	0.8	0	a soft rising tonal whoosh for a bar chart growing upward in an infographic, clean and short
+Data	chart_pop_a	0.5	0	a clearly audible soft digital blip for a dot appearing on a graph, clean, modern, short
+Reveal	swell_reverse_a	1.5	0	a gentle reverse cymbal swell rising into a soft reveal, smooth and subtle
+Reveal	riser_soft_a	2.0	0	a soft short tonal riser building gently into a reveal, airy and subtle, documentary explainer
+Reveal	ding_reveal_a	1.0	0	a soft clean glass ding for a key fact reveal, gentle, short ring
+Reveal	outro_chime	2.5	0	a warm soft tonal chime with a gentle shimmer tail for the end of a documentary, calm and resolved
+Emphasis	thud_soft_a	1.5	0	a deep soft low cinematic thud for emphasis, warm and restrained, documentary style, short decay, not a trailer hit
+Tonal	piano_low	2.0	0	a single soft low piano note with natural sustain, warm, for a serious fact, documentary
+Tonal	marimba_hit	1.0	0	a soft marimba double hit, warm wooden tone, short, for a data point
+Archive	film_reel_start	2.0	0	an old film projector starting up with a whirr and soft clatter, vintage
+Archive	shutter_a	0.6	0	a vintage film camera shutter click with a soft film advance, single shot
+Time	clock_tick_loop	6	1	a wall clock ticking steadily, clear and close, calm
+Ambience	city_street	12	1	a modern city street ambience with steady traffic, footsteps and distant voices, no horns, steady
+Ambience	village_morning	12	1	early morning village ambience with birds chirping, a rooster far away, light breeze, calm
+Ambience	office_roomtone	12	1	quiet office room tone with soft air conditioning hum and very distant keyboard typing
+Ambience	night_crickets	12	1	quiet night ambience with crickets and distant insects, calm and steady

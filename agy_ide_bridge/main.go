@@ -342,7 +342,7 @@ func main() {
 		mux.Handle("/api/opencode/", openCodeMgr)
 	}
 
-	// Custom YouTube Automation plugins on disk: list, install (ZIP or GitHub repository), update, remove, export
+	// Custom AutoKrish plugins on disk: list, install (ZIP or GitHub repository), update, remove, export
 	mux.Handle("/api/custom-plugins/", plugins.NewManager(cfg.HomeDir))
 
 	// REST Endpoints

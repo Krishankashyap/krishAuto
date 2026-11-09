@@ -1,0 +1,123 @@
+{
+ "style": "noir",
+ "aspect": "16:9",
+ "world": {
+  "era": "1846, Kingdom of Nepal",
+  "location": "Kathmandu valley",
+  "characters": {
+   "jung": "Jung Bahadur Kunwar: stern Nepali general in his late 20s, thick black moustache, jewelled crown-helmet topped with tall bird-of-paradise plumes, ornate gold-embroidered dark 19th-century military coat, curved sword"
+  }
+ },
+ "shots": [
+  {
+   "name": "bg_kot_night",
+   "kind": "scene",
+   "subject": "the Kot courtyard beside Hanuman Dhoka palace, empty stone square ringed by Newari pagoda buildings",
+   "action": "armed soldiers wait silently in the shadows at the gates",
+   "location": "Hanuman Dhoka, old Kathmandu",
+   "time": "midnight",
+   "weather": "still air, light ground mist",
+   "camera": {
+    "shot": "wide establishing shot",
+    "lens": "24mm",
+    "angle": "low angle from the courtyard floor",
+    "movement": "slow push-in"
+   },
+   "lighting": "flickering wall torches as the key light, cold blue moonlight as rim from above",
+   "palette": "teal-black shadows, amber torch pools, no saturated colours",
+   "mood": "ominous calm before a massacre",
+   "theme": "power is about to change hands violently",
+   "composition": "courtyard centre and right, dark open sky in the upper-left third left empty for the title",
+   "details": [
+    "carved wooden Newari windows",
+    "wet brick paving reflecting the torches",
+    "muskets with fixed bayonets"
+   ],
+   "focal": "the torch-lit palace gate at the far side of the courtyard",
+   "hook": "a single armed silhouette framed in the glowing gateway"
+  },
+  {
+   "name": "ct_khukuri",
+   "kind": "asset",
+   "subject": "a traditional Nepali khukuri knife with a curved blade",
+   "material": "hand-forged steel blade, horn handle with brass bolster",
+   "condition": "blade edge stained with dark dried blood",
+   "view": "three-quarter view, blade pointing down-left",
+   "details": [
+    "visible hammer marks on the blade",
+    "small notch (cho) near the handle"
+   ]
+  },
+  {
+   "name": "sheet_evidence_1",
+   "kind": "sheet",
+   "items": [
+    {
+     "name": "ct_musket",
+     "subject": "an 1840s flintlock musket with bayonet",
+     "material": "dark walnut stock, iron barrel",
+     "view": "side view"
+    },
+    {
+     "name": "ct_royal_seal",
+     "subject": "a red wax royal seal with a lion emblem",
+     "material": "cracked red sealing wax",
+     "view": "top view"
+    },
+    {
+     "name": "ct_oil_lamp",
+     "subject": "a brass Nepali oil lamp (diyo) with a small flame",
+     "material": "tarnished brass",
+     "view": "three-quarter view"
+    },
+    {
+     "name": "ct_scroll",
+     "subject": "a rolled parchment decree tied with red cord",
+     "material": "aged parchment, red cotton cord",
+     "view": "three-quarter view"
+    }
+   ]
+  },
+  {
+   "name": "vid_kot_dawn",
+   "kind": "video",
+   "duration": 8,
+   "subject": "the blood-stained Kot courtyard at dawn after the massacre",
+   "action": "smoke drifts across fallen swords while Jung Bahadur steps out of a doorway",
+   "location": "Kot courtyard, Hanuman Dhoka, Kathmandu",
+   "time": "first light of dawn",
+   "camera": {
+    "shot": "wide shot",
+    "lens": "35mm anamorphic",
+    "angle": "eye level",
+    "movement": "slow dolly-in"
+   },
+   "lighting": "cold blue dawn ambience, last embers of torches as warm accents",
+   "palette": "steel blue, ash grey, dried-blood maroon",
+   "mood": "eerie silence, dread",
+   "cast": [
+    "jung"
+   ],
+   "beats": [
+    {
+     "t": "0-3s",
+     "action": "empty courtyard, smoke drifting over fallen swords",
+     "camera": "static, then begins dolly-in"
+    },
+    {
+     "t": "3-6s",
+     "action": "Jung Bahadur steps into the doorway light and stops",
+     "camera": "continues slow dolly-in"
+    },
+    {
+     "t": "6-8s",
+     "action": "he looks across the courtyard, plumes moving slightly in the wind",
+     "camera": "settles on a medium-wide"
+    }
+   ],
+   "sound": "distant crows, wind, a single bell far away",
+   "focal": "Jung Bahadur in the doorway",
+   "hook": "his plumed helmet catching the first light"
+  }
+ ]
+}

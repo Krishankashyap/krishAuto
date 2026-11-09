@@ -1,0 +1,43 @@
+id	name	object
+01	sunrise_hills	green forested hills of Arunachal Pradesh with a big orange sun just rising from behind the hills
+02	office	a small Indian government office building with its front door and shutter closed
+03	india_gate	the India Gate war memorial arch in New Delhi
+04	kutch	the white salt desert of the Rann of Kutch in Gujarat with one round mud hut with a conical thatched roof
+05	city	a cluster of tall modern city buildings forming a small skyline
+06	mirzapur	a small north Indian riverside town with stone ghat steps leading down to the Ganga river and a temple
+07	bombay	the Victoria Terminus railway station in old Bombay, colonial gothic stone building with a central dome
+08	calcutta	the Victoria Memorial in old Calcutta, white marble building with a large central dome
+09	gazette	an old yellowed government decree paper with a red wax seal at the bottom, lines of blank writing
+10	price_tag	a brown paper price tag hanging from a loop of string
+11	dusk_hills	dark blue hills of north east India at dusk with the sun sinking behind them and a few small houses with lit windows
+12	moon	a crescent moon with three small stars
+13	school_kid	a school child in uniform with a backpack walking and holding a small torch light
+14	office_night	a tall office block at night with rows of lit yellow windows
+15	sun	a bright yellow midday sun with straight rays
+16	bulb	a glowing yellow light bulb
+17	meter	an old electricity meter with a round dial and a spinning disc
+18	globe	a desk globe on a wooden stand showing blue oceans and green continents
+19	great_wall	a section of the Great Wall of China running over green hills
+20	beijing	the Tiananmen gate building in Beijing with red walls and a yellow roof
+21	question	a large bold question mark
+22	train	an Indian Railways blue diesel locomotive pulling blue passenger coaches, seen from the side
+23	junction	a busy railway junction seen from above at an angle with many trains on parallel tracks
+24	crowd	a crowd of about ten Indian people from different regions standing together, seen from the front
+25	scientist	an Indian scientist in a white lab coat standing beside a large metal atomic clock machine
+26	report	a thick bound report with two plain round clock faces printed on the cover
+27	files	a tall stack of dusty government files tied with red cloth ribbon
+28	tea_garden	rolling hills of an Assam tea garden with neat rows of green tea bushes and tall shade trees
+29	tea_worker	an Assamese woman tea garden worker plucking tea leaves with a cane basket on her back
+30	pocket_watch	an old brass pocket watch with an open lid on a chain
+31	stamp	a wooden rubber stamp standing next to a red ink pad
+32	desert_town	a desert town in Xinjiang with mud brick houses and tall poplar trees
+33	india_map	a simple flat map of India as one single solid shape silhouette, no internal state borders, no neighbouring countries
+34	china_map	a simple flat map of China as one single solid shape silhouette, no internal borders
+35	russia_map	a simple flat map of Russia as one single solid shape silhouette, no internal borders
+36	usa_map	a simple flat map of the mainland United States as one single solid shape silhouette, no internal borders
+37	gujarat_map	a simple flat map of Gujarat state of India with the Kutch and Saurashtra peninsulas, one single solid shape silhouette, no internal borders
+38	arunachal_map	a simple flat map of Arunachal Pradesh state of India, one single solid shape silhouette, no internal borders
+39	up_map	a simple flat map of Uttar Pradesh state of India, one single solid shape silhouette, no internal borders
+40	bengal_map	a simple flat map of West Bengal state of India, one single solid shape silhouette, no internal borders
+41	assam_map	a simple flat map of Assam state of India, one single solid shape silhouette, no internal borders
+42	maharashtra_map	a simple flat map of Maharashtra state of India, one single solid shape silhouette, no internal borders
